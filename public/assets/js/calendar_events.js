@@ -4,7 +4,6 @@ $(function () {
   -----------------------------------------------------------------*/
   function ini_events(ele) {
     ele.each(function () {
-
       // create an Event Object (https://fullcalendar.io/docs/event-object)
       // it doesn't need to have a start or end
       var eventObject = {
@@ -20,11 +19,92 @@ $(function () {
         revert        : true, // will cause the event to go back to its
         revertDuration: 0  //  original position after the drag
       })
-
     })
   }
 
   ini_events($('#external-events div.external-event'))
+
+  function event_loader(status) {
+    $('.pred-events-loader').removeClass('d-flex');
+    $('.pred-events-loader').addClass('d-none');
+    $("#external-events").removeClass("d-none");
+
+    if(status == 'show'){
+      $('.pred-events-loader').addClass('d-flex');
+      $('.pred-events-loader').removeClass('d-none');
+      $("#external-events").addClass("d-none");
+    }
+  }
+
+
+  // Modify the event creation code in both AJAX calls
+  function createEventElement(title, currColor, textColor, eventId) {
+    var event = $('<div />')
+    event.css({ 'background-color': currColor, 'border-color': currColor, 'color': textColor, 'position': 'relative', 'padding-right': '60px' }).addClass('external-event')
+    .attr('data-event-id', eventId)
+    
+    // Add title span
+    event.append($('<span />').addClass('event-title').text(title))
+    
+    // Add edit/delete icons container
+    var icons = $('<div />').css({ 'position': 'absolute', 'right': '5px', 'top': '50%', 'transform': 'translateY(-50%)', 'display': 'none' }).addClass('event-actions')
+    
+    // Add edit icon
+    icons.append($('<i />').addClass('fas fa-edit mr-2').css({ 'cursor': 'pointer', 'margin-right': '8px' }))
+    
+    // Add delete icon
+    icons.append($('<i />').addClass('fas fa-trash-alt').css({ 'cursor': 'pointer' }))
+    
+    event.append(icons)
+    
+    // Show/hide icons on hover
+    event.hover(
+        function() { $(this).find('.event-actions').show(); },
+        function() { $(this).find('.event-actions').hide(); }
+    )
+    
+    return event;
+  }
+
+  /*  Load Predefined Event
+  ------------------------- */
+  $.ajax({
+    url: base_url+ "/event_types/",
+    type: "GET",
+    dataType: "json",
+    beforeSend: function (data) {
+      event_loader('show');
+    },
+    success: function (data) {
+      event_loader('hide');
+      if(data.event_types.length > 0){
+        (data.event_types).forEach(element => {
+          const textColor = getContrastColor(element.color);
+          var currColor = element.color;
+          var title = element.title;
+          // Create events
+          var event = createEventElement(
+            title, 
+            currColor, 
+            textColor,
+            element.id
+          );
+          $('#external-events').prepend(event);
+          ini_events(event);
+        });
+        
+      } else {
+        $('#external-events').html(
+          `<div class="alert alert-danger" role="alert">
+              No Event Types Found
+          </div>`
+        );
+      }
+    },
+    error: function (data) {
+      event_loader('hide');
+    }
+  });
 
   /* initialize the calendar
   -----------------------------------------------------------------*/
@@ -38,7 +118,7 @@ $(function () {
   var Draggable = FullCalendar.Draggable;
 
   var containerEl = document.getElementById('external-events');
-  var checkbox = document.getElementById('drop-remove');
+  // var checkbox = document.getElementById('drop-remove');
   var calendarEl = document.getElementById('calendar');
 
   // initialize the external events
@@ -56,7 +136,9 @@ $(function () {
     }
   });
 
-  var eventdata = [
+
+  var eventdata = [];
+  /* var eventdata = [
     {
       title: 'All Day Event',
       start: new Date(y, m, 1),
@@ -92,9 +174,10 @@ $(function () {
     {
       title: 'Meeting',
       start: new Date(y, m, d, 10, 30),
-      allDay: false,
-      backgroundColor: '#0073b7',
-      borderColor: '#0073b7'
+      end: new Date(y, m, d, 12, 30),
+      backgroundColor: '#f39c12',
+      borderColor: '#f39c12',
+      allDay: true
     },
     {
       title: 'Lunch',
@@ -120,120 +203,130 @@ $(function () {
       backgroundColor: '#3c8dbc',
       borderColor: '#3c8dbc'
     }
-  ];
+  ]; */
 
-  var calendar = new Calendar(calendarEl, {
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title', // Added yearDropdown here
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+  $.ajax({
+    url: base_url + "/get-events/",  // Your events endpoint
+    type: "GET",
+    dataType: "json",
+    beforeSend: function() {
+        // Show loader if needed
     },
-    themeSystem: 'bootstrap',
-    
-  
-    //Random default events
-    events: eventdata,
-    // Enable event dragging and resizing
-    editable  : true,
-    droppable : true,
-    selectable: true,
-    eventResizableFromStart: true, // Allow resize from both ends
-    
-    // Handle event click to show modal
-    eventClick: function(info) {
-      var event = info.event;
-      $('#eventTitle').val(event.title);
-      $('#eventStart').val(moment(event.start).format('YYYY-MM-DDTHH:mm'));
-      if(event.end) {
-        $('#eventEnd').val(moment(event.end).format('YYYY-MM-DDTHH:mm'));
-      }
-      
-      // Store the clicked event for later use
-      $('#eventModal').data('event', event);
-      $('#eventModal').modal('show');
-    },
-    
-    // Handle event resizing
-    eventResize: function(info) {
-      // Optional: Add notification
-      alert('Event resized: ' + info.event.title);
-    },
-
-  
-    select: function(info) {
-      // Clear previous modal data
-      $('#eventTitle').val('');
-      $('#eventStart').val(moment(info.start).format('YYYY-MM-DDTHH:mm'));
-      $('#eventEnd').val(moment(info.end).format('YYYY-MM-DDTHH:mm'));
-      
-      // Hide regular buttons and show create button
-      $('#saveEvent, #deleteEvent').hide();
-      $('#createEvent').show();
-      
-      // Store the selection info for later use
-      $('#eventModal').data('selectInfo', info);
-      
-      // Show the modal
-      $('#eventModal').modal('show');
-    },
-
-
-    /* select: function(info) {
-      let eventTitle = prompt('Enter Event Title:');
-      if (eventTitle) {
-        calendar.addEvent({
-          title: eventTitle,
-          start: info.start,
-          end: info.end,
-          allDay: info.allDay,
-          backgroundColor: currColor,
-          borderColor: currColor
-        });
-      }
-      calendar.unselect();
-    }, */
-    // this allows things to be dropped onto the calendar !!!
-    drop: function(info) {
-      // is the "remove after drop" checkbox checked?
-      if (checkbox.checked) {
-        // if so, remove the element from the "Draggable Events" list
-        info.draggedEl.parentNode.removeChild(info.draggedEl);
-      }
-    },
-
-    // Add custom year dropdown renderer
-    viewDidMount: function(view) {
-      if(!document.getElementById('yearSelect')) {
-        var currentYear = calendar.getDate().getFullYear();
-        var select = document.createElement('select');
-        select.id = 'yearSelect';
-        select.className = 'form-control d-inline-block ml-2';
-        select.style.width = 'auto';
-        
-        // Add options for ±10 years
-        for(let i = currentYear - 10; i <= currentYear + 10; i++) {
-          let option = document.createElement('option');
-          option.value = i;
-          option.text = i;
-          if(i === currentYear) option.selected = true;
-          select.appendChild(option);
+    success: function(response) {
+        if (response.events && response.events.length > 0) {
+            // Transform your events data into the format FullCalendar expects
+            eventdata = response.events.map(event => ({
+                id: event.id,
+                title: event.title,
+                start: event.start_date,
+                end: event.end_date,
+                backgroundColor: event.color || '#3c8dbc',
+                borderColor: event.color || '#3c8dbc',
+                allDay: event.is_all_day || false
+            }));
+            
+            // After loading events, initialize the calendar
+            initializeCalendar();
         }
-        
-        // Insert after the title
-        var titleElement = document.querySelector('.fc-toolbar-title');
-        titleElement.insertAdjacentElement('afterend', select);
-        
-        // Handle year change
-        select.onchange = function() {
-          var newDate = calendar.getDate();
-          newDate.setFullYear(this.value);
-          calendar.gotoDate(newDate);
-        };
-      }
+    },
+    error: function(xhr) {
+        console.error('Error loading events:', xhr);
+        // Initialize calendar even if events failed to load
+        initializeCalendar();
     }
   });
+  console.log(eventdata);
+  initializeCalendar();
+  function initializeCalendar() {
+    var calendar = new Calendar(calendarEl, {
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title', // Added yearDropdown here
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      themeSystem: 'bootstrap',
+      
+    
+      //Random default events
+      events: eventdata,
+      // Enable event dragging and resizing
+      editable  : true,
+      droppable : true,
+      selectable: true,
+      eventResizableFromStart: true, // Allow resize from both ends
+      
+      // Handle event click to show modal
+      eventClick: function(info) {
+        var event = info.event;
+        $('#eventTitle').val(event.title);
+        $('#eventStart').val(moment(event.start).format('YYYY-MM-DDTHH:mm'));
+        if(event.end) {
+          $('#eventEnd').val(moment(event.end).format('YYYY-MM-DDTHH:mm'));
+        }
+        
+        // Store the clicked event for later use
+        $('#eventModal').data('event', event);
+        $('#eventModal').modal('show');
+      },
+      
+      // Handle event resizing
+      eventResize: function(info) {
+        // Optional: Add notification
+        alert('Event resized: ' + info.event.title);
+      },
 
-  calendar.render();
+    
+      select: function(info) {
+        // Clear previous modal data
+        $('#eventTitle').val('');
+        $('#eventStart').val(moment(info.start).format('YYYY-MM-DDTHH:mm'));
+        $('#eventEnd').val(moment(info.end).format('YYYY-MM-DDTHH:mm'));
+        
+        // Hide regular buttons and show create button
+        $('#saveEvent, #deleteEvent').hide();
+        $('#createEvent').show();
+        
+        // Store the selection info for later use
+        $('#eventModal').data('selectInfo', info);
+        
+        // Show the modal
+        $('#eventModal').modal('show');
+      },
+
+      // Add custom year dropdown renderer
+      viewDidMount: function(view) {
+        if(!document.getElementById('yearSelect')) {
+          var currentYear = calendar.getDate().getFullYear();
+          var select = document.createElement('select');
+          select.id = 'yearSelect';
+          select.className = 'form-control d-inline-block ml-2';
+          select.style.width = 'auto';
+          
+          // Add options for ±10 years
+          for(let i = currentYear - 5; i <= currentYear + 10; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.text = i;
+            if(i === currentYear) option.selected = true;
+            select.appendChild(option);
+          }
+          
+          // Insert after the title
+          var titleElement = document.querySelector('.fc-toolbar-title');
+          titleElement.insertAdjacentElement('afterend', select);
+          
+          // Handle year change
+          select.onchange = function() {
+            var newDate = calendar.getDate();
+            newDate.setFullYear(this.value);
+            calendar.gotoDate(newDate);
+          };
+        }
+      }
+    });
+
+    calendar.render();
+  }
   // $('#calendar').fullCalendar()
 
   /* ADDING EVENTS */
@@ -256,22 +349,34 @@ $(function () {
     if (val.length == 0) {
       return
     }
-
-    // Create events
-    var event = $('<div />')
-    event.css({
-      'background-color': currColor,
-      'border-color'    : currColor,
-      'color'           : '#fff'
-    }).addClass('external-event')
-    event.text(val)
-    $('#external-events').prepend(event)
-
-    // Add draggable funtionality
-    ini_events(event)
-
-    // Remove event from text input
-    $('#new-event').val('')
+    $.ajax({
+      url: base_url+ "/event_type/add",
+      type: "POST",
+      data: {
+        'title': val,
+        'color': currColor,
+        'is_user_defined': 1        
+      },
+      dataType: "json",
+      success: function(data) {
+        event_loader('hide');
+        if(data.event_type) {
+            var event = createEventElement(
+                val, 
+                currColor, 
+                getContrastColor(currColor),
+                data.event_type.id
+            );
+            $('#external-events').prepend(event);
+            ini_events(event);
+            $('#new-event').val('');
+        }
+      },
+      error: function (data) {
+        customAlert('Error',data.responseJSON.message,'red');
+        event_loader('hide');
+      }
+    })
   })
 })
 $(document).ready(function() {
@@ -322,4 +427,119 @@ $(document).ready(function() {
     $('#createEvent').hide();
     $('#saveEvent, #deleteEvent').show();
   });
+
+  // Variables for editing
+  var editEventId = null;
+  var editColor = null;
+
+  // Handle edit icon click
+  $(document).on('click', '.external-event .fa-edit', function(e) {
+      e.stopPropagation();
+      var eventDiv = $(this).closest('.external-event');
+      var eventId = eventDiv.data('event-id');
+      var title = eventDiv.find('.event-title').text();
+      var color = eventDiv.css('background-color');
+      
+      // Populate modal
+      $('#edit-event-id').val(eventId);
+      $('#edit-event-title').val(title);
+      editColor = color;
+      
+      // Show modal
+      $('#editEventModal').modal('show');
+  });
+
+  // Handle delete icon click
+  $(document).on('click', '.external-event .fa-trash-alt', function(e) {
+      e.stopPropagation();
+      var eventDiv = $(this).closest('.external-event');
+      var eventId = eventDiv.data('event-id');
+
+      // customConfirm
+
+      $.confirm({
+        title: 'Delete Event',
+        content: 'Are you sure you want to delete this event?',
+        type: 'red',
+        typeAnimated: true,
+        backgroundDismiss: false,
+        backgroundDismissAnimation: 'glow',
+        buttons: {
+            Yes: {
+                text: 'Yes',
+                btnClass: 'btn-red',
+                action: function() {
+                  deleteEvent();
+                }
+            },
+            No: {
+                text: 'No'
+            }
+        }
+      });
+      function deleteEvent() {
+        $.ajax({
+          url: base_url + "/event_type/delete/" + eventId,
+          type: "DELETE",
+          dataType: "json",
+          success: function(response) {
+              if (response.success) {
+                  eventDiv.remove();
+                  // customAlert('Success', 'Event deleted successfully', 'green');
+              }
+          },
+          error: function(xhr) {
+              customAlert('Error', xhr.responseJSON?.message || 'Failed to delete event', 'red');
+          }
+        });
+      }
+  });
+
+  // Handle color picker in edit modal
+  $('#edit-color-chooser > li > a').click(function(e) {
+      e.preventDefault();
+      editColor = $(this).data('color');
+      console.log(editColor);
+  });
+
+  // Handle save changes button
+  $('#save-edit-event').click(function() {
+      var eventId = $('#edit-event-id').val();
+      var newTitle = $('#edit-event-title').val();
+
+      if (newTitle.length === 0) {
+          customAlert('Error', 'Event title cannot be empty', 'red');
+          return;
+      }
+
+      $.ajax({
+        url: base_url + "/event_type/update/" + eventId,
+        type: "PUT",
+        data: {
+            'title': newTitle,
+            'color': editColor
+        },
+        dataType: "json",
+        success: function(response) {
+            if (response.success) {
+                // Update the event in the UI
+                var eventDiv = $(`.external-event[data-event-id="${eventId}"]`);
+                eventDiv.find('.event-title').text(newTitle);
+                eventDiv.css({
+                    'background-color': editColor,
+                    'border-color': editColor,
+                    'color': getContrastColor(editColor)
+                });
+                
+                $('#editEventModal').modal('hide');
+                // customAlert('Success', 'Event updated successfully', 'green');
+            }
+        },
+        error: function(xhr) {
+            customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
+        }
+      });
+  });
+
+  
 });
