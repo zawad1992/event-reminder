@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->boolean('is_user_defined')->default(false)->comment('0=No, 1=Yes'); // 0=No, 1=Yes
             $table->unsignedBigInteger('user_id')->nullable(); // Nullable for system-defined types
+            $table->string('color')->nullable();
             $table->timestamps();
 
             // Foreign key constraint
