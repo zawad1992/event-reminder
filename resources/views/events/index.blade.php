@@ -10,23 +10,14 @@
         <div class="sticky-top mb-3">
           <div class="card">
             <div class="card-header">
-              <h4 class="card-title">Draggable Events</h4>
+              <h4 class="card-title">Predefined Events</h4>
             </div>
             <div class="card-body">
-              <!-- the events -->
-              <div id="external-events">
-                <div class="external-event bg-success">Lunch</div>
-                <div class="external-event bg-warning">Go home</div>
-                <div class="external-event bg-info">Do homework</div>
-                <div class="external-event bg-primary">Work on UI design</div>
-                <div class="external-event bg-danger">Sleep tight</div>
-                <div class="checkbox">
-                  <label for="drop-remove">
-                    <input type="checkbox" id="drop-remove">
-                    remove after drop
-                  </label>
-                </div>
+              <div class="d-flex justify-content-center align-items-center pred-events-loader" style="min-height: 200px;"> 
+                <i class="fas fa-sync fa-spin fa-4x"></i> 
               </div>
+              <!-- the events -->
+              <div id="external-events"></div>
             </div>
             <!-- /.card-body -->
           </div>
@@ -38,17 +29,16 @@
             <div class="card-body">
               <div class="btn-group" style="width: 100%; margin-bottom: 10px;">
                 <ul class="fc-color-picker" id="color-chooser">
-                  <li><a class="text-primary" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a class="text-warning" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a class="text-success" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a class="text-danger" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a class="text-muted" href="#"><i class="fas fa-square"></i></a></li>
+                  <li><a style="color: #3c8dbc" href="#"><i class="fas fa-square"></i></a></li>
+                  <li><a style="color: #f39c12" href="#"><i class="fas fa-square"></i></a></li>
+                  <li><a style="color: #00a65a" href="#"><i class="fas fa-square"></i></a></li>
+                  <li><a style="color: #dd4b39" href="#"><i class="fas fa-square"></i></a></li>
+                  <li><a style="color: #6c757d" href="#"><i class="fas fa-square"></i></a></li>
                 </ul>
               </div>
               <!-- /btn-group -->
               <div class="input-group">
                 <input id="new-event" type="text" class="form-control" placeholder="Event Title">
-
                 <div class="input-group-append">
                   <button id="add-new-event" type="button" class="btn btn-primary">Add</button>
                 </div>
@@ -80,4 +70,15 @@
   <script src="{{ url('public/assets/plugins/moment/moment.min.js') }}"></script>
   <script src="{{ url('public/assets/plugins/fullcalendar/main.js') }}"></script>
   <script src="{{ url('public/assets/js/calendar_events.js') }}"></script>
+  <script>
+
+    $(document).ready(function () {
+      /* $.ajax({ url: "{{url('/event_types')}}", type: "GET", dataType: "json", beforeSend: function (data) { event_loader('show'); }, success: function (data) { event_loader('hide'); if(data.event_types.length > 0){ (data.event_types).forEach(element => { const textColor = getContrastColor(element.color); // Add style for text color along with background color $('#external-events').prepend( `<div class="external-event" style="background-color: ${element.color}; color: ${textColor}"> ${element.title} </div>` ); }) console.log(data.event_types); } else { $('#external-events').html( `<div class="alert alert-danger" role="alert"> No Event Types Found </div>` ); } }, error: function (data) { event_loader('hide'); console.log(data); } }); */
+
+      /* $("#add-new-event").click(function (e) { var new_event = $("#new-event").val(); if (new_event != "") { $.ajax({ url: "{{url('/event_types')}}", type: "POST", data: { 'title': new_event }, dataType: "json", success: function (data) { event_loader('hide'); if(data.status){ $('#external-events').append( `<div class="external-event" style="background-color: ${data.color}; color: ${getContrastColor(data.color)}"> ${new_event} </div>` ); $("#new-event").val(''); } else { alert(data.message); } }}}) }); */
+    })
+
+    
+  </script>
+
 @endpush
