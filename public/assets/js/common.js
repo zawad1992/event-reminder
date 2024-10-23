@@ -33,3 +33,22 @@ function customConfirm(title,msg,type,url) {$.confirm({title:title, content:msg,
 
 $('.datePicker').datepicker({dateFormat: 'dd-mm-yy', changeYear: true, changeMonth: true });
 // add multiple correction input field dynamically
+
+
+// Function to determine if text should be white or black based on background color
+function getContrastColor(hexcolor) {
+    // Remove the # if present
+    hexcolor = hexcolor.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hexcolor.substr(0, 2), 16);
+    const g = parseInt(hexcolor.substr(2, 2), 16);
+    const b = parseInt(hexcolor.substr(4, 2), 16);
+    
+    // Calculate brightness (using relative luminance)
+    // Using YIQ formula: https://24ways.org/2010/calculating-color-contrast/
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    
+    // Return black or white based on brightness
+    return (yiq >= 128) ? 'black' : 'white';
+}
