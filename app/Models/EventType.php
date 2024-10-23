@@ -10,6 +10,7 @@ class EventType extends Model
     
     protected $fillable = [
         'title',
+        'color',        
         'is_user_defined',
         'user_id',
     ];
