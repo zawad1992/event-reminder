@@ -1,0 +1,32 @@
+.table-sm, .table-sm-temp {
+  font-size: 12px !important;
+}
+.table-sm td, .table-sm th {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.table-sm-temp td, .table-sm-temp th {
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+.border-top-1 {
+  border-top: 1px solid black !important;
+}
+.border-bottom-1 {
+  border-bottom: 1px solid black !important;
+}
+.border-left-1 {
+  border-left: 1px solid black !important;
+}
+.border-right-1 {
+  border-right: 1px solid black !important;
+}
+.pagebreak { 
+  page-break-after: always; 
+}
+.page-number {
+  font-size: 10px;
+  margin: 0;
+  padding: 0;
+}

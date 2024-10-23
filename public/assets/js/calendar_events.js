@@ -65,9 +65,27 @@ $(function () {
       allDay: true
     },
     {
+      title: 'ZAWAD Event',
+      start: new Date(y, m, 2),
+      backgroundColor: '#f56954',
+      borderColor: '#f56954',
+      allDay: true
+    },
+    {
       title: 'Long Event',
       start: new Date(y, m, d - 5),
       end: new Date(y, m, d - 2),
+      backgroundColor: '#f39c12',
+      borderColor: '#f39c12',
+      allDay: true,
+
+      editable: true,
+      durationEditable: true
+    },
+    {
+      title: 'Long Event',
+      start: new Date(y, m, d - 6),
+      end: new Date(y, m, d - 3),
       backgroundColor: '#f39c12',
       borderColor: '#f39c12'
     },
