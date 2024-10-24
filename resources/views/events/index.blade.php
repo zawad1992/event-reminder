@@ -1,6 +1,7 @@
 @push('styles')
 {{-- <link rel="stylesheet" href="../plugins/fullcalendar/main.css"> --}}
 <link rel="stylesheet" href="{{ url('public/assets/plugins/fullcalendar/main.css') }}">
+<link rel="stylesheet" href="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
 @endpush
 @extends('layouts.admin')
 @section('content')
@@ -70,6 +71,7 @@
   <script src="{{ url('public/assets/plugins/moment/moment.min.js') }}"></script>
   <script src="{{ url('public/assets/plugins/fullcalendar/main.js') }}"></script>
   <script src="{{ url('public/assets/js/calendar_events.js') }}"></script>
+  <script src="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
   <script>
 
     $(document).ready(function () {
