@@ -9,6 +9,8 @@ Route::get('/', function () {
 
 
 // Event Routes
+
+Route::get('/', [EventsController::class, 'index'])->name('events.index');
 Route::get('/events', [EventsController::class, 'index'])->name('events.index');
 Route::get('/get-events', [EventsController::class, 'get_events'])->name('events.get_events');
 Route::get('/event_types', [EventsController::class, 'types'])->name('event_types.index');
