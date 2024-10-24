@@ -16,6 +16,14 @@ class EventTypeSeeder extends Seeder
         DB::table('event_types')->insert([
             // System-defined events (Professional & Important)
             [
+                'title' => 'Task',
+                'is_user_defined' => false,
+                'user_id' => null,
+                'color' => '#3c8dbc', // Professional blue
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
                 'title' => 'Meeting',
                 'is_user_defined' => false,
                 'user_id' => null,
