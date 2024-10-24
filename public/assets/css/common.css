@@ -29,14 +29,6 @@
     white-space: nowrap;
 }
 
-.error {
-    color:red !important;
-}
-
-.error-message,.required {
-    font-weight: bold;
-    color:red !important;
-}
 
 .vcenter {
     vertical-align: middle !important;
@@ -113,4 +105,27 @@
 /* Remove margin from last item to prevent extra space */
 #recurringPeriodDiv > div:last-child {
     margin-right: 0;
+}
+
+
+/* Error style */
+.required, .error {
+    color:red !important;
+}
+
+.error-message,.required {
+    font-weight: bold;
+    color:red !important;
+}
+
+.has-error .form-control {
+    border-color: #dc3545;
+}
+.has-error .input-group-text {
+    border-color: #dc3545;
+    color: #dc3545;
+}
+.error-message {
+    font-size: 80%;
+    margin-top: 0.25rem;
 }
