@@ -11,7 +11,7 @@
         <div class="form-group">
           <label for="eventType">Event Type</label>
           <select class="form-control" id="eventType">
-            <option value="" style="font-weight: bold;color: #3c8dbc">Task</option>
+            <option value="" style="font-weight: bold;color: #3c8dbc" data-color="#3c8dbc">Task</option>
           </select>
         </div>
         <div class="form-group">
@@ -23,36 +23,52 @@
           <textarea class="form-control" id="eventDescription"></textarea>
         </div>
         <div class="form-group">
-          <label for="eventStart">Start Time</label>
-          <input type="datetime-local" class="form-control" id="eventStart">
+            <label for="eventStart">Start Time</label>
+            <div class="input-group date" id="startDatePicker" data-target-input="nearest">
+                <input type="text" class="form-control datetimepicker-input" id="eventStart" data-target="#startDatePicker"/>
+                <div class="input-group-append" data-target="#startDatePicker" data-toggle="datetimepicker">
+                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                </div>
+            </div>
         </div>
         <div class="form-group">
-          <label for="eventEnd">End Time</label>
-          <input type="datetime-local" class="form-control" id="eventEnd">
+            <label for="eventEnd">End Time</label>
+            <div class="input-group date" id="endDatePicker" data-target-input="nearest">
+                <input type="text" class="form-control datetimepicker-input" id="eventEnd" data-target="#endDatePicker"/>
+                <div class="input-group-append" data-target="#endDatePicker" data-toggle="datetimepicker">
+                    <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="custom-control custom-checkbox">
+              <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventAllDay">
+              <label for="eventAllDay" class="custom-control-label" style="cursor: pointer">Is All Day?</label>
+          </div>
+          <div class="custom-control custom-checkbox">
+              <input class="custom-control-input custom-control-input-danger" type="checkbox" id="eventReminder" checked>
+              <label for="eventReminder" class="custom-control-label" style="cursor: pointer">Reminder?</label>
+          </div>
         </div>
         <div class="custom-control custom-checkbox">
-          <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventAllDay" checked="">
-          <label for="eventAllDay" class="custom-control-label" style="cursor: pointer">Is All Day?</label>
-        </div>
-        <div class="custom-control custom-checkbox">
-          <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventRecurring">
+          <input class="custom-control-input custom-control-input-info" type="checkbox" id="eventRecurring">
           <label for="eventRecurring" class="custom-control-label" style="cursor: pointer">Recurring?</label>
         </div>
         <div class="custom-control custom-radio d-flex" id="recurringPeriodDiv">
           <div>
-            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType1" name="recurringType" value="1"  checked="">
+            <input class="custom-control-input custom-control-input-info recurring-type" type="radio" id="recurringType1" name="recurringType" value="1"  checked="">
             <label for="recurringType1" class="custom-control-label">Daily</label>
           </div>
           <div>
-            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType2" name="recurringType" value="2" >
+            <input class="custom-control-input custom-control-input-info recurring-type" type="radio" id="recurringType2" name="recurringType" value="2" >
             <label for="recurringType2" class="custom-control-label">Weekly</label>
           </div>
           <div>
-            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType3" name="recurringType" value="3" >
+            <input class="custom-control-input custom-control-input-info recurring-type" type="radio" id="recurringType3" name="recurringType" value="3" >
             <label for="recurringType3" class="custom-control-label">Monthly</label>
           </div>
           <div>
-            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType4" name="recurringType" value="4" >
+            <input class="custom-control-input custom-control-input-info recurring-type" type="radio" id="recurringType4" name="recurringType" value="4" >
             <label for="recurringType4" class="custom-control-label">Yearly</label>
           </div>
         </div>
@@ -60,13 +76,13 @@
           <label for="recurringCount" class="mb-2">Recurring Count</label>
           <div class="input-group input-group-sm" style="width: 100px">
             <div class="input-group-prepend">
-              <button type="button" class="btn btn-danger btn-sm btn-flat decrease" style="padding: 0.25rem 0.5rem;">
+              <button type="button" class="btn btn-danger btn-sm btn-flat decrease" id="decreaseCount" style="padding: 0.25rem 0.5rem;">
                 <i class="fas fa-minus fa-sm"></i>
               </button>
             </div>
             <input type="text" class="form-control form-control-sm text-center" id="recurringCount" value="1" min="1" max="100" readonly>
             <div class="input-group-append">
-              <button type="button" class="btn btn-success btn-sm btn-flat increase" style="padding: 0.25rem 0.5rem;">
+              <button type="button" class="btn btn-success btn-sm btn-flat increase" id="increaseCount" style="padding: 0.25rem 0.5rem;">
                 <i class="fas fa-plus fa-sm"></i>
               </button>
             </div>
@@ -75,20 +91,20 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" id="deleteEvent">Delete</button>
-        <button type="button" class="btn btn-primary" id="saveEvent">Save</button>
+        <button type="button" class="btn btn-success" id="updateEvent">Update</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-success" id="createEvent" style="display: none;">Create</button>
+        <button type="button" class="btn btn-primary" id="createEvent" style="display: none;">Create</button>
       </div>
     </div>
   </div>
 </div>
 
 
-<div class="modal fade" id="editEventModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="editEventTypeModal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
       <div class="modal-content">
           <div class="modal-header">
-              <h5 class="modal-title">Edit Event</h5>
+              <h5 class="modal-title">Edit Event Type</h5>
               <button type="button" class="close" data-dismiss="modal">
                   <span>&times;</span>
               </button>
@@ -114,7 +130,7 @@
           </div>
           <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-success" id="save-edit-event">Update Changes</button>
+              <button type="button" class="btn btn-success" id="update-event-type">Update Changes</button>
           </div>
       </div>
   </div>
