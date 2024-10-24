@@ -27,6 +27,8 @@ return new class extends Migration
             $table->boolean('is_reminder')->default(true)->nullable()->comment('0=No, 1=Yes');
             $table->boolean('is_recurring')->default(false)->nullable()->comment('0=No, 1=Yes');
             $table->enum('recurring_type', [1, 2, 3, 4])->nullable()->comment('1=Daily, 2=Weekly, 3=Monthly, 4=Yearly');
+            $table->integer('recurring_count')->nullable();
+            $table->boolean('is_completed')->default(false)->nullable()->comment('0=No, 1=Yes');
             $table->timestamps();
 
             // Foreign key constraint
