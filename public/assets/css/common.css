@@ -98,3 +98,19 @@
     padding: 3px;
     margin: 3px;
 }
+
+.custom-control-label, .form-group > label {
+    user-select: none;
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+}
+
+#recurringPeriodDiv > div {
+    margin-right: 2rem;  /* Custom margin between radio buttons */
+}
+
+/* Remove margin from last item to prevent extra space */
+#recurringPeriodDiv > div:last-child {
+    margin-right: 0;
+}
