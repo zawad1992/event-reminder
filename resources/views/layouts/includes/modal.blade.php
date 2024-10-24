@@ -9,8 +9,18 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
+          <label for="eventType">Event Type</label>
+          <select class="form-control" id="eventType">
+            <option value="" style="font-weight: bold;color: #3c8dbc">Task</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="eventTitle">Event Title</label>
           <input type="text" class="form-control" id="eventTitle">
+        </div>
+        <div class="form-group">
+          <label for="eventDescription">Description</label>
+          <textarea class="form-control" id="eventDescription"></textarea>
         </div>
         <div class="form-group">
           <label for="eventStart">Start Time</label>
@@ -19,6 +29,48 @@
         <div class="form-group">
           <label for="eventEnd">End Time</label>
           <input type="datetime-local" class="form-control" id="eventEnd">
+        </div>
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventAllDay" checked="">
+          <label for="eventAllDay" class="custom-control-label" style="cursor: pointer">Is All Day?</label>
+        </div>
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventRecurring">
+          <label for="eventRecurring" class="custom-control-label" style="cursor: pointer">Recurring?</label>
+        </div>
+        <div class="custom-control custom-radio d-flex" id="recurringPeriodDiv">
+          <div>
+            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType1" name="recurringType" value="1"  checked="">
+            <label for="recurringType1" class="custom-control-label">Daily</label>
+          </div>
+          <div>
+            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType2" name="recurringType" value="2" >
+            <label for="recurringType2" class="custom-control-label">Weekly</label>
+          </div>
+          <div>
+            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType3" name="recurringType" value="3" >
+            <label for="recurringType3" class="custom-control-label">Monthly</label>
+          </div>
+          <div>
+            <input class="custom-control-input custom-control-input-danger recurring-type" type="radio" id="recurringType4" name="recurringType" value="4" >
+            <label for="recurringType4" class="custom-control-label">Yearly</label>
+          </div>
+        </div>
+        <div class="form-group" id="recurringCountDiv">
+          <label for="recurringCount" class="mb-2">Recurring Count</label>
+          <div class="input-group input-group-sm" style="width: 100px">
+            <div class="input-group-prepend">
+              <button type="button" class="btn btn-danger btn-sm btn-flat decrease" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-minus fa-sm"></i>
+              </button>
+            </div>
+            <input type="text" class="form-control form-control-sm text-center" id="recurringCount" value="1" min="1" max="100" readonly>
+            <div class="input-group-append">
+              <button type="button" class="btn btn-success btn-sm btn-flat increase" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-plus fa-sm"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
