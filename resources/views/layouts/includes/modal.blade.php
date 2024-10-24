@@ -1,4 +1,4 @@
-<div class="modal fade" id="eventModal" tabindex="-1" role="dialog">
+<div class="modal fade" id="eventModal" data-backdrop="false" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -9,13 +9,11 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label for="eventType">Event Type</label>
-          <select class="form-control" id="eventType">
-            <option value="" style="font-weight: bold;color: #3c8dbc" data-color="#3c8dbc">Task</option>
-          </select>
+          <label for="eventType">Event Type <span class="required">*</span></label>
+          <select class="form-control" id="eventType"></select>
         </div>
         <div class="form-group">
-          <label for="eventTitle">Event Title</label>
+          <label for="eventTitle">Event Title <span class="required">*</span></label>
           <input type="text" class="form-control" id="eventTitle">
         </div>
         <div class="form-group">
@@ -23,7 +21,7 @@
           <textarea class="form-control" id="eventDescription"></textarea>
         </div>
         <div class="form-group">
-            <label for="eventStart">Start Time</label>
+            <label for="eventStart">Start Time <span class="required">*</span></label>
             <div class="input-group date" id="startDatePicker" data-target-input="nearest">
                 <input type="text" class="form-control datetimepicker-input" id="eventStart" data-target="#startDatePicker"/>
                 <div class="input-group-append" data-target="#startDatePicker" data-toggle="datetimepicker">
@@ -32,7 +30,7 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="eventEnd">End Time</label>
+            <label for="eventEnd">End Time <span class="required">*</span></label>
             <div class="input-group date" id="endDatePicker" data-target-input="nearest">
                 <input type="text" class="form-control datetimepicker-input" id="eventEnd" data-target="#endDatePicker"/>
                 <div class="input-group-append" data-target="#endDatePicker" data-toggle="datetimepicker">
