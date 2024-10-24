@@ -42,27 +42,20 @@ $(function () {
     var event = $('<div />')
     event.css({ 'background-color': currColor, 'border-color': currColor, 'color': textColor, 'position': 'relative', 'padding-right': '60px' }).addClass('external-event')
     .attr('data-event-id', eventId)
-    
     // Add title span
     event.append($('<span />').addClass('event-title').text(title))
-    
     // Add edit/delete icons container
     var icons = $('<div />').css({ 'position': 'absolute', 'right': '5px', 'top': '50%', 'transform': 'translateY(-50%)', 'display': 'none' }).addClass('event-actions')
-    
     // Add edit icon
     icons.append($('<i />').addClass('fas fa-edit mr-2').css({ 'cursor': 'pointer', 'margin-right': '8px' }))
-    
     // Add delete icon
     icons.append($('<i />').addClass('fas fa-trash-alt').css({ 'cursor': 'pointer' }))
-    
     event.append(icons)
-    
     // Show/hide icons on hover
     event.hover(
         function() { $(this).find('.event-actions').show(); },
         function() { $(this).find('.event-actions').hide(); }
     )
-    
     return event;
   }
 
@@ -82,15 +75,19 @@ $(function () {
           const textColor = getContrastColor(element.color);
           var currColor = element.color;
           var title = element.title;
+          var eventId = element.id;
           // Create events
           var event = createEventElement(
             title, 
             currColor, 
             textColor,
-            element.id
+            eventId
           );
           $('#external-events').prepend(event);
           ini_events(event);
+
+          $('#eventType').append(`<option value="${eventId}" data-color="${currColor}" style="font-weight: bold; color: ${currColor}" >${title}</option>`); // Add event type to select
+
         });
         
       } else {
@@ -138,72 +135,28 @@ $(function () {
 
 
   var eventdata = [];
-  /* var eventdata = [
-    {
-      title: 'All Day Event',
-      start: new Date(y, m, 1),
-      backgroundColor: '#f56954',
-      borderColor: '#f56954',
-      allDay: true
-    },
-    {
-      title: 'ZAWAD Event',
-      start: new Date(y, m, 2),
-      backgroundColor: '#f56954',
-      borderColor: '#f56954',
-      allDay: true
-    },
-    {
-      title: 'Long Event',
-      start: new Date(y, m, d - 5),
-      end: new Date(y, m, d - 2),
-      backgroundColor: '#f39c12',
-      borderColor: '#f39c12',
-      allDay: true,
-
-      editable: true,
-      durationEditable: true
-    },
-    {
-      title: 'Long Event',
-      start: new Date(y, m, d - 6),
-      end: new Date(y, m, d - 3),
-      backgroundColor: '#f39c12',
-      borderColor: '#f39c12'
-    },
-    {
-      title: 'Meeting',
-      start: new Date(y, m, d, 10, 30),
-      end: new Date(y, m, d, 12, 30),
-      backgroundColor: '#f39c12',
-      borderColor: '#f39c12',
-      allDay: true
-    },
-    {
-      title: 'Lunch',
-      start: new Date(y, m, d, 12, 0),
-      end: new Date(y, m, d, 14, 0),
-      allDay: false,
-      backgroundColor: '#00c0ef',
-      borderColor: '#00c0ef'
-    },
-    {
-      title: 'Birthday Party',
-      start: new Date(y, m, d + 1, 19, 0),
-      end: new Date(y, m, d + 1, 22, 30),
-      allDay: false,
-      backgroundColor: '#00a65a',
-      borderColor: '#00a65a'
-    },
-    {
-      title: 'Click for Google',
-      start: new Date(y, m, 28),
-      end: new Date(y, m, 29),
-      url: 'https://www.google.com/',
-      backgroundColor: '#3c8dbc',
-      borderColor: '#3c8dbc'
-    }
-  ]; */
+  /* var eventdata = [ { title: 'All Day Event', start: new Date(y, m, 1), backgroundColor: '#f56954', borderColor: '#f56954', allDay: true }, { title: 'ZAWAD Event', start: new Date(y, m, 2), backgroundColor: '#f56954', borderColor: '#f56954', allDay: true }, { title: 'Long Event', start: new Date(y, m, d - 5), end: new Date(y, m, d - 2), backgroundColor: '#f39c12', borderColor: '#f39c12', allDay: true, editable: true, durationEditable: true }, { title: 'Long Event', start: new Date(y, m, d - 6), end: new Date(y, m, d - 3), backgroundColor: '#f39c12', borderColor: '#f39c12' }, { title: 'Meeting', start: new Date(y, m, d, 10, 30), end: new Date(y, m, d, 12, 30), backgroundColor: '#f39c12', borderColor: '#f39c12', allDay: true }, { title: 'Lunch', start: new Date(y, m, d, 12, 0), end: new Date(y, m, d, 14, 0), allDay: false, backgroundColor: '#00c0ef', borderColor: '#00c0ef' }, { title: 'Birthday Party', start: new Date(y, m, d + 1, 19, 0), end: new Date(y, m, d + 1, 22, 30), allDay: false, backgroundColor: '#00a65a', borderColor: '#00a65a' }, { title: 'Click for Google', start: new Date(y, m, 28), end: new Date(y, m, 29), url: 'https://www.google.com/', backgroundColor: '#3c8dbc', borderColor: '#3c8dbc' } ]; 
+  
+  {
+            "id": 1,
+            "reminder_id": "00122",
+            "user_id": 1,
+            "title": "Test",
+            "description": "Abus",
+            "event_type_id": 3,
+            "start_date": "2024-10-24",
+            "end_date": "2024-10-24",
+            "start_time": null,
+            "end_time": null,
+            "color": "#16a085",
+            "is_all_day": 1,
+            "is_reminder": 1,
+            "is_recurring": 0,
+            "recurring_type": null,
+            "created_at": null,
+            "updated_at": null
+        }
+  */
 
   $.ajax({
     url: base_url + "/get-events/",  // Your events endpoint
@@ -214,12 +167,20 @@ $(function () {
     },
     success: function(response) {
         if (response.events && response.events.length > 0) {
+            console.log(response.events);
             // Transform your events data into the format FullCalendar expects
             eventdata = response.events.map(event => ({
                 id: event.id,
                 title: event.title,
+                description: event.description,
+                event_type_id: event.event_type_id,                                
                 start: event.start_date,
                 end: event.end_date,
+                is_all_day: event.is_all_day,
+                is_reminder: event.is_reminder,
+                is_recurring: event.is_recurring,
+                recurring_type: event.recurring_type,
+                recurring_count: event.recurring_count,
                 backgroundColor: event.color || '#3c8dbc',
                 borderColor: event.color || '#3c8dbc',
                 allDay: event.is_all_day || false
@@ -235,7 +196,7 @@ $(function () {
         initializeCalendar();
     }
   });
-  console.log(eventdata);
+
   initializeCalendar();
   function initializeCalendar() {
     var calendar = new Calendar(calendarEl, {
@@ -499,7 +460,6 @@ $(document).ready(function() {
   $('#edit-color-chooser > li > a').click(function(e) {
       e.preventDefault();
       editColor = $(this).data('color');
-      console.log(editColor);
   });
 
   // Handle save changes button
@@ -542,4 +502,55 @@ $(document).ready(function() {
   });
 
   
+});
+
+$(document).ready(function() {
+  // Initially hide recurring period and count divs
+  $('#recurringPeriodDiv, #recurringCountDiv').hide();
+  $('#recurringPeriodDiv').removeClass('d-flex');
+  
+  $('#eventRecurring').change(function() {
+      const isChecked = this.checked;
+      $('#recurringPeriodDiv, #recurringCountDiv').toggle(isChecked);
+      $('#recurringPeriodDiv').toggleClass('d-flex', isChecked);
+      
+      // Reset values when unchecked
+      if (!isChecked) {
+          $('#recurringType1').prop('checked', true);
+          $('#recurringCount').val(1);
+      }
+  });
+
+  // Get all counter groups
+  $('.input-group').each(function() {
+    const $input = $(this).find('input');
+    const $decreaseBtn = $(this).find('.decrease');
+    const $increaseBtn = $(this).find('.increase');
+    
+    // Decrease button click
+    $decreaseBtn.click(function() {
+        const currentValue = parseInt($input.val());
+        if (currentValue > parseInt($input.attr('min'))) {
+            $input.val(currentValue - 1);
+        }
+    });
+    
+    // Increase button click
+    $increaseBtn.click(function() {
+        const currentValue = parseInt($input.val());
+        if (currentValue < parseInt($input.attr('max'))) {
+            $input.val(currentValue + 1);
+        }
+    });
+    
+    // Prevent manual input of invalid values
+    $input.change(function() {
+        const value = parseInt($input.val());
+        const min = parseInt($input.attr('min'));
+        const max = parseInt($input.attr('max'));
+        
+        if (value < min) $input.val(min);
+        if (value > max) $input.val(max);
+    });
+});
 });
