@@ -31,24 +31,11 @@ class EventsController extends Controller
 
     public function event_add(Request $request)
     {
-        /* 
-          "title" => "Deadline"
-            "description" => "Test Bud"
-            "start_date" => "2024-10-14"
-            "end_date" => "2024-10-14"
-            "is_all_day" => "true"
-            "is_recurring" => "false"
-            "recurring_type" => null
-            "recurring_count" => null
-            "event_type_id" => "8"
-            ]
-        
-        */
+       
         try {
-            dd($request->all());
             // Extract start_date and end_date from the request
-            $start = $request->start_date; // assuming 'start_date' contains both date and time like '2024-10-22T00:00'
-            $end = $request->end_date; // assuming 'end_date' contains both date and time like '2024-10-23T00:00'
+            $start = $request->start_date;
+            $end = $request->end_date;
 
             // Use Carbon to correctly extract date and time parts
             $startDateTime = Carbon::parse($start);
@@ -56,24 +43,27 @@ class EventsController extends Controller
 
             // Format the start and end date/time as required
             $start_date = $startDateTime->format('Y-m-d');
-            $start_time = $startDateTime->format('H:i:s');
+            $start_time = $startDateTime->format('H:i:0');
             $end_date = $endDateTime->format('Y-m-d');
-            $end_time = $endDateTime->format('H:i:s');
+            $end_time = $endDateTime->format('H:i:0');
 
             $event = new Event();
             $event->title = $request->title;
             $event->description = $request->description;
+            $event->event_type_id = $request->event_type_id;
             $event->start_date = $start_date;
             $event->end_date = $end_date;
             $event->start_time = $start_time;
             $event->end_time = $end_time;
-            $event->is_all_day = $request->is_all_day;
-            $event->is_recurring = $request->is_recurring;
+            $event->color = $request->color;
+            $event->is_all_day = ($request->is_all_day) ? 1 : 0;
+            $event->is_reminder = ($request->is_reminder) ? 1 : 0;
+            $event->is_recurring = ($request->is_recurring) ? 1 : 0;
             $event->recurring_type = $request->recurring_type;
             $event->recurring_count = $request->recurring_count;
-            $event->event_type_id = $request->event_type_id;
-            $event->is_reminder = $request->is_reminder;
+
             $event->user_id = 1; // Will change later
+
             if(Auth::check()){
                 $event->user_id = Auth::user()->id;
             }
@@ -84,7 +74,6 @@ class EventsController extends Controller
 
             $data['success'] = true;
             $data['event'] = $event;
-
 
             return response()->json($data);
         } catch (\Exception $e) {
