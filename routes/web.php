@@ -12,6 +12,9 @@ Route::get('/', function () {
 
 Route::get('/', [EventsController::class, 'index'])->name('events.index');
 Route::get('/events', [EventsController::class, 'index'])->name('events.index');
+Route::post('/event/add', [EventsController::class, 'event_add'])->name('events.add');
+Route::put('/event/update/{id}', [EventsController::class, 'event_update'])->name('events.update');
+
 Route::get('/get-events', [EventsController::class, 'get_events'])->name('events.get_events');
 Route::get('/event_types', [EventsController::class, 'types'])->name('event_types.index');
 Route::post('/event_type/add', [EventsController::class, 'type_add'])->name('event_types.add');
