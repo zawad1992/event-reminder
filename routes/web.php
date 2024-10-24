@@ -10,11 +10,16 @@ Route::get('/', function () {
 
 // Event Routes
 
-Route::get('/', [EventsController::class, 'index'])->name('events.index');
-Route::get('/events', [EventsController::class, 'index'])->name('events.index');
-Route::post('/event/add', [EventsController::class, 'event_add'])->name('events.add');
+Route::get('/', [EventsController::class, 'calendar'])->name('events.calendar');
+Route::get('/events', [EventsController::class, 'calendar'])->name('events.calendar');
+
+Route::get('/events/list', [EventsController::class, 'index'])->name('events.index');
+
+Route::get('/event/add', [EventsController::class, 'event_add'])->name('events.add');
+Route::post('/event/add', [EventsController::class, 'event_submit'])->name('events.add');
 Route::put('/event/update/{id}', [EventsController::class, 'event_update'])->name('events.update');
-Route::put('/event/update_resize/{id}', [EventsController::class, 'event_update_resize'])->name('events.update');
+Route::delete('/event/delete/{id}', [EventsController::class, 'event_delete'])->name('events.delete');
+
 
 
 Route::get('/get_events', [EventsController::class, 'get_events'])->name('events.get_events');

@@ -1,86 +1,187 @@
-@push('styles')
-{{-- <link rel="stylesheet" href="../plugins/fullcalendar/main.css"> --}}
-<link rel="stylesheet" href="{{ url('public/assets/plugins/fullcalendar/main.css') }}">
-<link rel="stylesheet" href="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
-@endpush
 @extends('layouts.admin')
+
+@push('styles')
+  <link rel="stylesheet" href="{{ url('public/assets/plugins/ekko-lightbox/ekko-lightbox.css') }}">
+  <link rel="stylesheet" href="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+  <link rel="stylesheet" href="{{ url('public/assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
+@endpush
+
 @section('content')
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-3">
-        <div class="sticky-top mb-3">
-          <div class="card">
+<div class="content-wrapper kanban ml-0" style="background-color: #fff;">
+  <section class="content pb-3">
+    <div class="container-fluid h-100">
+      <div class="card card-row card-secondary">
+        <div class="card-header">
+          <h3 class="card-title">
+            Backlog
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="card card-info card-outline">
             <div class="card-header">
-              <h4 class="card-title">Predefined Events</h4>
+              <h5 class="card-title">Create Labels</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#3</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
             </div>
             <div class="card-body">
-              <div class="d-flex justify-content-center align-items-center pred-events-loader" style="min-height: 200px;"> 
-                <i class="fas fa-sync fa-spin fa-4x"></i> 
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox1" disabled>
+                <label for="customCheckbox1" class="custom-control-label">Bug</label>
               </div>
-              <!-- the events -->
-              <div id="external-events"></div>
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox2" disabled>
+                <label for="customCheckbox2" class="custom-control-label">Feature</label>
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox3" disabled>
+                <label for="customCheckbox3" class="custom-control-label">Enhancement</label>
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox4" disabled>
+                <label for="customCheckbox4" class="custom-control-label">Documentation</label>
+              </div>
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox5" disabled>
+                <label for="customCheckbox5" class="custom-control-label">Examples</label>
+              </div>
             </div>
-            <!-- /.card-body -->
           </div>
-          <!-- /.card -->
-          <div class="card">
+          <div class="card card-primary card-outline">
             <div class="card-header">
-              <h3 class="card-title">Create Event</h3>
+              <h5 class="card-title">Create Issue template</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#4</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
             </div>
             <div class="card-body">
-              <div class="btn-group" style="width: 100%; margin-bottom: 10px;">
-                <ul class="fc-color-picker" id="color-chooser">
-                  <li><a style="color: #3c8dbc" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a style="color: #f39c12" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a style="color: #00a65a" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a style="color: #dd4b39" href="#"><i class="fas fa-square"></i></a></li>
-                  <li><a style="color: #6c757d" href="#"><i class="fas fa-square"></i></a></li>
-                </ul>
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox1_1" disabled>
+                <label for="customCheckbox1_1" class="custom-control-label">Bug Report</label>
               </div>
-              <!-- /btn-group -->
-              <div class="input-group">
-                <input id="new-event" type="text" class="form-control" placeholder="Event Title">
-                <div class="input-group-append">
-                  <button id="add-new-event" type="button" class="btn btn-primary">Add</button>
-                </div>
-                <!-- /btn-group -->
+              <div class="custom-control custom-checkbox">
+                <input class="custom-control-input" type="checkbox" id="customCheckbox1_2" disabled>
+                <label for="customCheckbox1_2" class="custom-control-label">Feature Request</label>
               </div>
-              <!-- /input-group -->
+            </div>
+          </div>
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Create PR template</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#6</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="card card-light card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Create Actions</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#7</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
+
+            </div>
+            <div class="card-body">
+              <p>
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+                Aenean commodo ligula eget dolor. Aenean massa.
+                Cum sociis natoque penatibus et magnis dis parturient montes,
+                nascetur ridiculus mus.
+              </p>
             </div>
           </div>
         </div>
       </div>
-      <!-- /.col -->
-      <div class="col-md-9">
-        <div class="card card-primary">
-          <div class="card-body p-0">
-            <!-- THE CALENDAR -->
-            <div id="calendar"></div>
-          </div>
-          <!-- /.card-body -->
+      <div class="card card-row card-primary">
+        <div class="card-header">
+          <h3 class="card-title">
+            To Do
+          </h3>
         </div>
-        <!-- /.card -->
+        <div class="card-body">
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Create first milestone</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#5</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <!-- /.col -->
+      <div class="card card-row card-default">
+        <div class="card-header bg-info">
+          <h3 class="card-title">
+            In Progress
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="card card-light card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Update Readme</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#2</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
+            </div>
+            <div class="card-body">
+              <p>
+                Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+                Aenean commodo ligula eget dolor. Aenean massa.
+                Cum sociis natoque penatibus et magnis dis parturient montes,
+                nascetur ridiculus mus.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card card-row card-success">
+        <div class="card-header">
+          <h3 class="card-title">
+            Done
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Create repo</h5>
+              <div class="card-tools">
+                <a href="#" class="btn btn-tool btn-link">#1</a>
+                <a href="#" class="btn btn-tool">
+                  <i class="fas fa-pen"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <!-- /.row -->
-  </div><!-- /.container-fluid -->
+  </section>
+</div>
+
 @endsection
+
 @push('scripts')
-  <!-- fullCalendar -->
-  <script src="{{ url('public/assets/plugins/moment/moment.min.js') }}"></script>
-  <script src="{{ url('public/assets/plugins/fullcalendar/main.js') }}"></script>
-  <script src="{{ url('public/assets/js/calendar_events.js') }}"></script>
-  <script src="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-  <script>
-
-    $(document).ready(function () {
-      /* $.ajax({ url: "{{url('/event_types')}}", type: "GET", dataType: "json", beforeSend: function (data) { event_loader('show'); }, success: function (data) { event_loader('hide'); if(data.event_types.length > 0){ (data.event_types).forEach(element => { const textColor = getContrastColor(element.color); // Add style for text color along with background color $('#external-events').prepend( `<div class="external-event" style="background-color: ${element.color}; color: ${textColor}"> ${element.title} </div>` ); }) console.log(data.event_types); } else { $('#external-events').html( `<div class="alert alert-danger" role="alert"> No Event Types Found </div>` ); } }, error: function (data) { event_loader('hide'); console.log(data); } }); */
-
-      /* $("#add-new-event").click(function (e) { var new_event = $("#new-event").val(); if (new_event != "") { $.ajax({ url: "{{url('/event_types')}}", type: "POST", data: { 'title': new_event }, dataType: "json", success: function (data) { event_loader('hide'); if(data.status){ $('#external-events').append( `<div class="external-event" style="background-color: ${data.color}; color: ${getContrastColor(data.color)}"> ${new_event} </div>` ); $("#new-event").val(''); } else { alert(data.message); } }}}) }); */
-    })
-
-    
-  </script>
-
+<script src="{{ url('public/assets/plugins/moment/moment.min.js') }}"></script>
+<script src="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+<script src="{{ url('public/assets/plugins/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
+<script src="{{ url('public/assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+<script src="{{ url('public/assets/plugins/filterizr/jquery.filterizr.min.js') }}"></script>
 @endpush

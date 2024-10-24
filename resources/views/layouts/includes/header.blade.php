@@ -1,11 +1,15 @@
 <nav class="pl-0 ml-0 main-header navbar navbar-expand navbar-white navbar-light">
   <!-- Left navbar links -->
-  <ul class="navbar-nav">
-    <li class="nav-item d-none d-sm-inline-block">
-      <a href="../../index3.html" class="nav-link">Home</a>
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a href="{{url('/events')}}" class="nav-link {{ request()->is('events') ? 'active' : '' }}">
+        <i class="far fa-calendar-alt mr-2"></i> Calendar
+      </a>
     </li>
-    <li class="nav-item d-none d-sm-inline-block">
-      <a href="#" class="nav-link">Contact</a>
+    <li class="nav-item">
+      <a href="{{url('/events/list')}}" class="nav-link {{ request()->is('events/list') ? 'active' : '' }}">
+        <i class="fas fa-list mr-2"></i> Event List
+      </a>
     </li>
   </ul>
 

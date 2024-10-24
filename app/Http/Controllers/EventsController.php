@@ -19,6 +19,14 @@ class EventsController extends Controller
         $title_for_layout = 'Events List';
         return view('events.index', compact('title', 'title_for_layout'));
     }
+    
+    public function calendar()
+    {
+        $title = 'Calendar';
+        $title_for_layout = 'Calendar';
+        return view('events.calendar', compact('title', 'title_for_layout'));
+    }
+
     public function get_events()
     {
         $user_id = 1; // Will change later
@@ -29,7 +37,14 @@ class EventsController extends Controller
         return response()->json($events);
     }
 
-    public function event_add(Request $request)
+    public function event_add()
+    {
+        $title = 'Add Event';
+        $title_for_layout = 'Add Event';
+        return view('events.add', compact('title', 'title_for_layout'));
+    }
+
+    public function event_submit(Request $request)
     {
         try {
             // Extract start_date and end_date from the request
@@ -130,7 +145,30 @@ class EventsController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update event'
+                'message' => 'Failed to update event '.$e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function event_delete($id)
+    {
+        try {
+
+            $user_id = 1; // Will change later
+            if(Auth::check()){
+                $user_id = Auth::user()->id;
+            }
+
+            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
+            $event->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Event deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete event'
             ], 500);
         }
     }

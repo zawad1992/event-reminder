@@ -166,9 +166,12 @@ $(function() {
           $('#eventReminder').prop("checked", false);
           $('#eventType').val($('#eventType option:first').val());
           
-          // Set dates
-          $('#startDatePicker').datetimepicker('date', moment(info.start));
-          $('#endDatePicker').datetimepicker('date', moment(info.end));
+          // Set dates with proper end time
+          const startDate = moment(info.start);
+          const endDate = moment(info.start).endOf('day');
+    
+          $('#startDatePicker').datetimepicker('date', startDate);
+          $('#endDatePicker').datetimepicker('date', endDate);
           
           // Update modal state
           $('#eventModal').removeData('dropInfo');
@@ -220,8 +223,24 @@ $(function() {
             $('#eventAllDay').prop('checked', event.allDay).trigger('change');
             
             // Set dates
-            $('#startDatePicker').datetimepicker('date', moment(event.start));
-            $('#endDatePicker').datetimepicker('date', event.end ? moment(event.end) : moment(event.start).add(1, 'hour'));
+            const startDate = moment(event.start);
+            let endDate;
+            
+            if (event.end) {
+                if (event.allDay) {
+                    // For all-day events, set end date to 11:59 PM of the previous day
+                    endDate = moment(event.end).subtract(1, 'days').endOf('day');
+                } else {
+                    // For regular events, use the actual end time
+                    endDate = moment(event.end);
+                }
+            } else {
+                // If no end date, set to end of the start date
+                endDate = moment(event.start).endOf('day');
+            }
+            
+            $('#startDatePicker').datetimepicker('date', startDate);
+            $('#endDatePicker').datetimepicker('date', endDate);
             
             // Handle recurring fields
             const isRecurring = event.extendedProps.isRecurring === 1;  // Match 0/1 format
@@ -257,58 +276,21 @@ $(function() {
             recurring_type: event.extendedProps.recurringType,
             recurring_count: event.extendedProps.recurringCount
           };
-      
+
           $.ajax({
-              url: base_url + "/event/update/" + event.id,
-              type: "PUT",
-              data: formData,
-              dataType: "json",
-              success: function(response) {
-                if (response.success) {
-                  // Update the calendar event with the new data
-                  const updatedEvent = calendar.getEventById(event.id);
-                  if (updatedEvent) {
-                    updatedEvent.setProp('title', formData.title);
-                    updatedEvent.setStart(formData.start_date);
-                    updatedEvent.setEnd(formData.end_date);
-                    updatedEvent.setProp('backgroundColor', formData.color);
-                    updatedEvent.setProp('borderColor', formData.color);
-                    
-                    // Match the same extended props structure as create event
-                    updatedEvent.setExtendedProp('description', formData.description);
-                    updatedEvent.setExtendedProp('eventTypeId', formData.event_type_id);
-                    updatedEvent.setExtendedProp('color', formData.color);
-                    updatedEvent.setExtendedProp('isAllDay', formData.is_all_day);
-                    updatedEvent.setExtendedProp('isReminder', formData.is_reminder);
-                    updatedEvent.setExtendedProp('isRecurring', formData.is_recurring);
-                    updatedEvent.setExtendedProp('recurringType', formData.recurring_type);
-                    updatedEvent.setExtendedProp('recurringCount', formData.recurring_count);
-                  }
-                  /* // Update was successful
-                  // You might want to refresh the calendar or update the event
-                  info.revert();
-                  calendar.addEvent({
-                      id: response.event.id,
-                      title: formData.title,
-                      description: formData.description,
-                      eventTypeId: formData.event_type_id,
-                      start: formData.start_date,
-                      end: formData.end_date,
-                      color: formData.color,
-                      isAllDay: formData.is_all_day,
-                      isReminder: formData.is_reminder,
-                      isRecurring: formData.is_recurring,
-                      recurringType: formData.recurring_type,
-                      recurringCount: formData.recurring_count,
-                      backgroundColor: event.backgroundColor,
-                      borderColor: event.borderColor
-                  }); */
+            url: base_url + "/event/update/" + event.id,
+            type: "PUT",
+            data: formData,
+            dataType: "json",
+            success: function(response) {
+                if (!response.success) {
+                    info.revert();
                 }
-              },
-              error: function(xhr) {
-                  info.revert();
-                  customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
-              }
+            },
+            error: function(xhr) {
+                info.revert();
+                customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
+            }
           });
         },
         
@@ -318,52 +300,34 @@ $(function() {
           
           // Get all required data from the event object
           const formData = {
-              id: event.id,
-              title: event.title,
-              description: event.extendedProps.description,
-              event_type_id: event.extendedProps.eventTypeId,
-              start_date: moment(event.start).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-              end_date: moment(event.end).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-              color: event.extendedProps.color,
-              is_all_day: isAllDay,
-              is_reminder: event.extendedProps.isReminder,
-              is_recurring: event.extendedProps.isRecurring,
-              recurring_type: event.extendedProps.recurringType,
-              recurring_count: event.extendedProps.recurringCount
+            id: event.id,
+            title: event.title,
+            description: event.extendedProps.description,
+            event_type_id: event.extendedProps.eventTypeId,
+            start_date: moment(event.start).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            end_date: moment(event.end).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            color: event.extendedProps.color,
+            is_all_day: isAllDay,
+            is_reminder: event.extendedProps.isReminder,
+            is_recurring: event.extendedProps.isRecurring,
+            recurring_type: event.extendedProps.recurringType,
+            recurring_count: event.extendedProps.recurringCount
           };
-      
+
           $.ajax({
-              url: base_url + "/event/update/" + event.id,
-              type: "PUT",
-              data: formData,
-              dataType: "json",
-              success: function(response) {
-                if (response.success) {
-                  // Update was successful
-                  // You might want to refresh the calendar or update the event
-                  info.revert();
-                  calendar.addEvent({
-                      id: response.event.id,
-                      title: formData.title,
-                      description: formData.description,
-                      eventTypeId: formData.event_type_id,
-                      start: formData.start_date,
-                      end: formData.end_date,
-                      color: formData.color,
-                      isAllDay: formData.is_all_day,
-                      isReminder: formData.is_reminder,
-                      isRecurring: formData.is_recurring,
-                      recurringType: formData.recurring_type,
-                      recurringCount: formData.recurring_count,
-                      backgroundColor: event.backgroundColor,
-                      borderColor: event.borderColor
-                  });
+            url: base_url + "/event/update/" + event.id,
+            type: "PUT",
+            data: formData,
+            dataType: "json",
+            success: function(response) {
+                if (!response.success) {
+                    info.revert();
                 }
-              },
-              error: function(xhr) {
-                  info.revert();
-                  customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
-              }
+            },
+            error: function(xhr) {
+                info.revert();
+                customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
+            }
           });
         },
 
@@ -490,12 +454,22 @@ $(function() {
     const endDate = $('#endDatePicker').datetimepicker('date');
     const color = $('#eventType :selected').data('color');
 
+    // Adjust end date based on whether it's an all-day event
+    let adjustedEndDate;
+    if (isAllDay) {
+        // For all-day events, add one day to make the end date inclusive
+        adjustedEndDate = moment(endDate).add(1, 'days');
+    } else {
+        // For timed events, use the exact end time
+        adjustedEndDate = moment(endDate);
+    }
+
     const formData = {
         title: $('#eventTitle').val(),
         description: $('#eventDescription').val(),
         event_type_id: $('#eventType').val(),
         start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-        end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
         color: color,
         is_all_day: isAllDay,
         is_reminder: isReminder,
@@ -518,26 +492,29 @@ $(function() {
       dataType: "json",
       success: function(response) {
         if (response.success) {
-            calendar.addEvent({
-                id: response.event.id,
-                title: formData.title,
-                description: formData.description,
-                eventTypeId: formData.event_type_id,
-                start: formData.start_date,
-                end: formData.end_date,
-                color: formData.color,
-                isAllDay: formData.is_all_day,
-                isReminder: formData.is_reminder,
-                isRecurring: formData.is_recurring,
-                recurringType: formData.recurring_type,
-                recurringCount: formData.recurring_count,
-                backgroundColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
-                borderColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color')
-            });
-            
-            $('#eventModal').modal('hide');
-            $('#eventModal').removeData('dropInfo');
-            calendar.unselect();
+          calendar.addEvent({
+            id: response.event.id,
+            title: formData.title,
+            start: formData.start_date,
+            end: formData.end_date,
+            allDay: formData.is_all_day,
+            backgroundColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
+            borderColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
+            extendedProps: {
+              description: formData.description,
+              eventTypeId: formData.event_type_id,
+              color: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
+              isReminder: formData.is_reminder,
+              isAllDay: formData.is_all_day,
+              isRecurring: formData.is_recurring,
+              recurringType: formData.recurring_type,
+              recurringCount: formData.recurring_count
+            }
+          });
+          
+          $('#eventModal').modal('hide');
+          $('#eventModal').removeData('dropInfo');
+          calendar.unselect();
         }
       },
       error: function(xhr) {
@@ -564,70 +541,82 @@ $(function() {
     const endDate = $('#endDatePicker').datetimepicker('date');
     const color = $('#eventType :selected').data('color');
 
+    // Adjust end date based on whether it's an all-day event
+    let adjustedEndDate;
+    if (isAllDay) {
+        // For all-day events, add one day to make the end date exclusive
+        adjustedEndDate = moment(endDate).add(1, 'days');
+    } else {
+        // For timed events, use the exact end time
+        adjustedEndDate = moment(endDate);
+    }
 
-    // Create formData object with values from form elements, not from formData itself
+    // Create formData object with values from form elements
     const formData = {
-      id: event.id,
-      title: $('#eventTitle').val(),
-      description: $('#eventDescription').val(),
-      event_type_id: $('#eventType').val(),
-      start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-      end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-      color: color,
-      is_all_day: isAllDay,
-      is_reminder: isReminder,
-      is_recurring: isRecurring,
-      recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
-      recurring_count: isRecurring ? $('#recurringCount').val() : null
+        id: event.id,
+        title: $('#eventTitle').val(),
+        description: $('#eventDescription').val(),
+        event_type_id: $('#eventType').val(),
+        start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        color: color,
+        is_all_day: isAllDay,
+        is_reminder: isReminder,
+        is_recurring: isRecurring,
+        recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
+        recurring_count: isRecurring ? $('#recurringCount').val() : null
     };
 
     // Add the dropped event's type if it exists
     const dropInfo = $('#eventModal').data('dropInfo');
     if (dropInfo) {
-      formData.event_type_id = dropInfo.eventTypeId;
+        formData.event_type_id = dropInfo.eventTypeId;
     }
 
     $.ajax({
-      url: base_url + "/event/update/" + event.id,
-      type: "PUT",
-      data: formData,
-      dataType: "json",
-      success: function(response) {
-        if (response.success) {
-          // Update the calendar event with the new data
-          const updatedEvent = calendar.getEventById(event.id);
-          if (updatedEvent) {
-            updatedEvent.setProp('title', formData.title);
-            updatedEvent.setStart(formData.start_date);
-            updatedEvent.setEnd(formData.end_date);
-            updatedEvent.setProp('backgroundColor', dropInfo ? dropInfo.backgroundColor : color);
-            updatedEvent.setProp('borderColor', dropInfo ? dropInfo.backgroundColor : color);
-            
-            // Match the same extended props structure as create event
-            updatedEvent.setExtendedProp('description', formData.description);
-            updatedEvent.setExtendedProp('eventTypeId', formData.event_type_id);
-            updatedEvent.setExtendedProp('color', formData.color);
-            updatedEvent.setExtendedProp('isAllDay', formData.is_all_day);
-            updatedEvent.setExtendedProp('isReminder', formData.is_reminder);
-            updatedEvent.setExtendedProp('isRecurring', formData.is_recurring);
-            updatedEvent.setExtendedProp('recurringType', formData.recurring_type);
-            updatedEvent.setExtendedProp('recurringCount', formData.recurring_count);
+        url: base_url + "/event/update/" + event.id,
+        type: "PUT",
+        data: formData,
+        dataType: "json",
+        success: function(response) {
+            if (response.success) {
+                const updatedEvent = calendar.getEventById(event.id);
+                if (updatedEvent) {
+                    // Remove the existing event
+                    updatedEvent.remove();
+                    
+                    // Add the updated event as a new event
+                    calendar.addEvent({
+                        id: event.id,
+                        title: formData.title,
+                        start: formData.start_date,
+                        end: formData.end_date,
+                        allDay: isAllDay === 1,
+                        backgroundColor: color,
+                        borderColor: color,
+                        extendedProps: {
+                            description: formData.description,
+                            eventTypeId: formData.event_type_id,
+                            color: color,
+                            isReminder: formData.is_reminder,
+                            isAllDay: formData.is_all_day,
+                            isRecurring: formData.is_recurring,
+                            recurringType: formData.recurring_type,
+                            recurringCount: formData.recurring_count
+                        }
+                    });
 
-            // Update colors
-            const backgroundColor = dropInfo ? 
-                dropInfo.backgroundColor : 
-                $('#eventType option:selected').data('color');
-            updatedEvent.setProp('backgroundColor', backgroundColor);
-            updatedEvent.setProp('borderColor', backgroundColor);
-          }
-          
-          $('#eventModal').modal('hide');
-          $('#eventModal').removeData('dropInfo');
+                    // Force calendar to refresh the view
+                    calendar.refetchEvents();
+                }
+                
+                $('#eventModal').modal('hide');
+                $('#eventModal').removeData('dropInfo');
+            }
+        },
+        error: function(xhr) {
+            customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
         }
-      },
-      error: function(xhr) {
-          customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
-      }
     });
   });
 
@@ -636,6 +625,19 @@ $(function() {
     const event = $('#eventModal').data('event');
     if(event) {
       event.remove();
+      $.ajax({
+        url: base_url + "/event/delete/" + event.id,
+        type: "DELETE",
+        dataType: "json",
+        success: function(response) {
+          if (response.success) {
+            $('#eventModal').modal('hide');           
+          }
+        },
+        error: function(xhr) {
+          customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
+        }
+      });
     }
     $('#eventModal').modal('hide');
   });
@@ -648,12 +650,7 @@ $(function() {
     $(this).css('border-color', '');
   });
 
-  // Clear validation states when modal is hidden
-  $('#eventModal').on('hidden.bs.modal', function() {
-    $('.form-group').removeClass('has-error');
-    $('.error-message').remove();
-    $('input, select').css('border-color', '');
-  });
+  
 
   // =====================
   // Event Type CRUD Operations
@@ -815,7 +812,23 @@ $(function() {
     $(this).removeData('event');
     $('#createEvent').hide();
     $('#updateEvent, #deleteEvent').show();
+    $('.form-group').removeClass('has-error');
+    $('.error-message').remove();
+    $('input, select').css('border-color', '');
   });
+
+  // When loading event for editing
+  $('#eventModal').on('show.bs.modal', function() {
+    const event = $('#eventModal').data('event');
+    if (event) {
+      // If it's an all-day event, subtract one day from the displayed end date
+      if (event.allDay) {
+          const endDate = moment(event.end).subtract(1, 'days');
+          $('#endDatePicker').datetimepicker('date', endDate);
+      }
+    }
+  });
+
 
   // =====================
   // Form Controls
@@ -835,17 +848,30 @@ $(function() {
         const endDate = $('#endDatePicker').datetimepicker('date');
         
         if(startDate) {
-            startDate.set({hour:0,minute:0,second:0});
+            startDate.startOf('day'); // Set to beginning of day (00:00)
             $('#startDatePicker').datetimepicker('date', startDate);
         }
         if(endDate) {
-            endDate.set({hour:23,minute:59,second:59});
+            endDate.endOf('day'); // Set to end of day (23:59)
             $('#endDatePicker').datetimepicker('date', endDate);
         }
     } else {
         // Configure back to datetime with AM/PM
         $('#startDatePicker').datetimepicker('format', 'YYYY-MM-DD hh:mm A');
         $('#endDatePicker').datetimepicker('format', 'YYYY-MM-DD hh:mm A');
+        
+        // When switching from all-day to timed, set reasonable default times
+        const startDate = $('#startDatePicker').datetimepicker('date');
+        const endDate = $('#endDatePicker').datetimepicker('date');
+        
+        if(startDate) {
+            startDate.set({ hour: 0, minute: 0 }); // Set to 12:00 AM
+            $('#startDatePicker').datetimepicker('date', startDate);
+        }
+        if(endDate) {
+            endDate.set({ hour: 23, minute: 59 }); // Set to 11:59 PM
+            $('#endDatePicker').datetimepicker('date', endDate);
+        }
     }
   });  
   
@@ -945,18 +971,21 @@ $(function() {
         eventdata = response.events.map(event => ({
           id: event.id,
           title: event.title,
-          description: event.description,
-          eventTypeId: event.event_type_id,
           start: event.start_date,
           end: event.end_date,
-          color: event.color,
-          isAllDay: event.is_all_day,
-          isReminder: event.is_reminder,
-          isRecurring: event.is_recurring,
-          recurringType: event.recurring_type,
-          recurringCount: event.recurring_count,
-          backgroundColor: event.color || '#3c8dbc',
-          borderColor: event.color || '#3c8dbc'
+          allDay: event.is_all_day,
+          backgroundColor: event.color,
+          borderColor: event.color,
+          extendedProps: {
+            description: event.description,
+            eventTypeId: event.event_type_id,
+            color: event.color,
+            isReminder: event.is_reminder,
+            isAllDay: event.is_all_day,
+            isRecurring: event.is_recurring,
+            recurringType: event.recurring_type,
+            recurringCount: event.recurring_count
+          },
         }));
       }
       initializeCalendar();
