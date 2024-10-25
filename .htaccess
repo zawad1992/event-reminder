@@ -23,5 +23,5 @@
     Options -Indexes
 
     # Deny access to sensitive files
-    RewriteRule ^(tzonetemp\.db|.env|composer\.json|composer\.lock|artisan)$ - [F,L]
+    RewriteRule ^(eventdb\.db|.env|composer\.json|composer\.lock|artisan)$ - [F,L]
 </IfModule>
