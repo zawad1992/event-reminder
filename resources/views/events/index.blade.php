@@ -136,7 +136,12 @@
             Upcoming Events
           </h3>
         </div>
-        <div class="card-body upcomingEvents">
+        <div class="card-body">
+          <div class="d-flex justify-content-center align-items-center upcoming-events-loader" style="min-height: 200px;"> 
+            <i class="fas fa-sync fa-spin fa-4x"></i> 
+          </div>
+          <div class="upcomingEvents">
+          </div>
          
         </div>
       </div>
@@ -147,8 +152,12 @@
             Completed Events
           </h3>
         </div>
-        <div class="card-body completedEvents">
-         
+        <div class="card-body">
+          <div class="d-flex justify-content-center align-items-center completed-events-loader" style="min-height: 200px;"> 
+            <i class="fas fa-sync fa-spin fa-4x"></i> 
+          </div>
+          <div class="completedEvents">
+          </div>         
         </div>       
       </div>
 
