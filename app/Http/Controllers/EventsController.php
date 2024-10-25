@@ -150,6 +150,32 @@ class EventsController extends Controller
         }
     }
 
+    public function event_complete($id)
+    {
+        try {
+            $user_id = 1; // Will change later
+            if(Auth::check()){
+                $user_id = Auth::user()->id;
+            }
+
+            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
+            $event->is_completed = 1;
+            $event->save();
+
+            // Hide the user_id field from the JSON response
+            $event->makeHidden('user_id');
+
+            $data['success'] = true;
+            $data['event'] = $event;
+            return response()->json($data);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update event '.$e->getMessage()
+            ], 500);
+        }
+    }
+
     public function event_delete($id)
     {
         try {
