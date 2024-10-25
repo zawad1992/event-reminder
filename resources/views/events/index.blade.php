@@ -65,11 +65,13 @@
               <div class="mt-3">
                 <p class="mb-2">CSV Format Requirements:</p>
                 <ul class="text-muted">
-                    <li>First row must contain these headers: title, description, event_type_id, start_date, end_date, color, is_all_day, is_reminder, is_recurring, recurring_type, recurring_count</li>
+                    <li>First row must contain these headers: title, description, event_type_id, start_date, end_date, is_all_day, is_reminder, is_recurring, recurring_type, recurring_count</li>
                     <li>Required fields:
                         <ul>
                             <li>title - Event name</li>
-                            <li>event_type_id - Must be an existing event type ID</li>
+                            <li>event_type_id - Must be an existing event type ID
+                                <ul class="event-type-list"></ul>
+                            </li>
                             <li>start_date - Format: YYYY-MM-DD HH:mm:ss</li>
                             <li>end_date - Format: YYYY-MM-DD HH:mm:ss</li>
                         </ul>
