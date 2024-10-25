@@ -5,6 +5,8 @@ $(function() {
 
   initializeRecurringEventHandlers();
   initializeCounterInputs();
+  // Initial binding of event handlers
+  rebindEventHandlers();
 
   // =====================
   // Utility Functions
@@ -166,18 +168,18 @@ $(function() {
                 <div class="card-header" style="border-color: ${event.color};background-color: ${event.color}; color: ${textColor};">
                     <h5 class="card-title" style="font-weight: 500px;">${event.title}</h5>
                     <div class="card-tools">
-                        <span class="badge" style="background-color: ${event.color}">#${event.id}</span>
+                        <span class="badge" style="background-color: ${event.color}">#${event.reminder_id}</span>
                         ${!event.is_completed ? `
-                            <a href="#" class="btn btn-tool complete-event" data-event-id="${event.id}" title="Mark as Complete">
+                            <button type="button" class="btn btn-tool complete-event" data-event-id="${event.id}" title="Mark as Complete">
                                 <i class="fas fa-check"></i>
-                            </a>
-                            <a href="#" class="btn btn-tool edit-event" data-event-id="${event.id}">
+                            </button>
+                            <button type="button" class="btn btn-tool edit-event" data-event-id="${event.id}">
                                 <i class="fas fa-pen"></i>
-                            </a>
+                            </button>
                         ` : ''}
-                        <a href="#" class="btn btn-tool delete-event" data-event-id="${event.id}">
+                        <button type="button" class="btn btn-tool delete-event" data-event-id="${event.id}">
                             <i class="fas fa-times"></i>
-                        </a>
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -194,7 +196,6 @@ $(function() {
             </div>
         `;
 
-        // Add to appropriate container based on completion status
         if (event.is_completed) {
             completedEventsContainer.prepend(cardHtml);
         } else {
@@ -209,12 +210,16 @@ $(function() {
     if (completedEventsContainer.children().length === 0) {
         completedEventsContainer.html('<div class="text-center text-muted">No completed events</div>');
     }
+
+    // Rebind event handlers after creating cards
+    rebindEventHandlers();
   }
 
   // Add event handler for edit icon
-  $(document).on('click', '.edit-event', function(e) {
+  $(document).on('click', '.event-card .edit-event', function(e) {
     e.preventDefault();
-    const eventId = $(this).data('event-id');
+    e.stopPropagation();
+    const eventId = $(this).closest('.event-card').data('event-id');
     const event = globalEvents.find(e => e.id === eventId);
     
     if (event) {
@@ -351,6 +356,7 @@ $(function() {
               if (response.success) {
                   const newEvent = {
                       id: response.event.id,
+                      reminder_id: response.event.reminder_id,
                       ...formData
                   };
                   
@@ -373,54 +379,58 @@ $(function() {
 
   // Update Event
   $('#updateEvent').click(function(e) {
-      e.preventDefault();
-      
-      if (!validateEventForm()) {
-          return false;
-      }
+    e.preventDefault();
+    
+    if (!validateEventForm()) {
+        return false;
+    }
 
-      const eventId = $('#event_id').val();
-      const isAllDay = $('#eventAllDay').is(':checked') ? 1 : 0;
-      const isReminder = $('#eventReminder').is(':checked') ? 1 : 0;
-      const isRecurring = $('#eventRecurring').is(':checked') ? 1 : 0;
-      const startDate = $('#startDatePicker').datetimepicker('date');
-      const endDate = $('#endDatePicker').datetimepicker('date');
-      const color = $('#eventType :selected').data('color');
+    const eventId = $('#event_id').val();
+    const isAllDay = $('#eventAllDay').is(':checked') ? 1 : 0;
+    const isReminder = $('#eventReminder').is(':checked') ? 1 : 0;
+    const isRecurring = $('#eventRecurring').is(':checked') ? 1 : 0;
+    const startDate = $('#startDatePicker').datetimepicker('date');
+    const endDate = $('#endDatePicker').datetimepicker('date');
+    const color = $('#eventType :selected').data('color');
 
-      // Adjust end date based on whether it's an all-day event
-      let adjustedEndDate;
-      if (isAllDay) {
-          adjustedEndDate = moment(endDate).add(1, 'days');
-      } else {
-          adjustedEndDate = moment(endDate);
-      }
+    let adjustedEndDate;
+    if (isAllDay) {
+        adjustedEndDate = moment(endDate).add(1, 'days');
+    } else {
+        adjustedEndDate = moment(endDate);
+    }
 
-      const formData = {
-          id: eventId,
-          title: $('#eventTitle').val(),
-          description: $('#eventDescription').val(),
-          event_type_id: $('#eventType').val(),
-          start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-          end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-          color: color,
-          is_all_day: isAllDay,
-          is_reminder: isReminder,
-          is_recurring: isRecurring,
-          recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
-          recurring_count: isRecurring ? $('#recurringCount').val() : null
-      };
+    const formData = {
+        id: eventId,
+        title: $('#eventTitle').val(),
+        description: $('#eventDescription').val(),
+        event_type_id: $('#eventType').val(),
+        start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        color: color,
+        is_all_day: isAllDay,
+        is_reminder: isReminder,
+        is_recurring: isRecurring,
+        recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
+        recurring_count: isRecurring ? $('#recurringCount').val() : null
+    };
 
-      $.ajax({
-          url: base_url + "/event/update/" + eventId,
-          type: "PUT",
-          data: formData,
-          dataType: "json",
-          success: function(response) {
+    $.ajax({
+        url: base_url + "/event/update/" + eventId,
+        type: "PUT",
+        data: formData,
+        dataType: "json",
+        success: function(response) {
             if (response.success) {
-                // Update in global events array
-                const index = globalEvents.findIndex(event => event.id === eventId);
+                // Update the global events array properly
+                const index = globalEvents.findIndex(event => event.id === parseInt(eventId));
                 if (index !== -1) {
-                    globalEvents[index] = formData;
+                    // Preserve the existing event object structure
+                    globalEvents[index] = {
+                        ...globalEvents[index],  // Keep existing properties
+                        ...formData,            // Update with new data
+                        id: parseInt(eventId)    // Ensure ID is an integer
+                    };
                 }
                 
                 // Refresh event cards
@@ -430,13 +440,41 @@ $(function() {
                 resetForm();
                 switchToCreateMode();
                 customAlert('Success', 'Event updated successfully', 'green');
+                
+                // Force reload of event handlers
+                rebindEventHandlers();
             }
-          },
-          error: function(xhr) {
-              customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
-          }
-      });
+        },
+        error: function(xhr) {
+            customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
+        }
+    });
   });
+
+  
+  // Add this new function to rebind event handlers
+  function rebindEventHandlers() {
+    // Remove existing handlers
+    $(document).off('click', '.edit-event');
+    
+    // Rebind edit event handler
+    $(document).on('click', '.edit-event', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const eventId = $(this).data('event-id');
+        
+        const event = globalEvents.find(e => e.id === parseInt(eventId));
+        
+        if (event) {
+            loadEventForEdit(event);
+            // Scroll to form
+            $('html, body').animate({
+                scrollTop: $("#eventForm").offset().top - 100
+            }, 500);
+        }
+    });
+  }
 
   // Add cancel button handler
   $('#cancelEdit').click(function() {
@@ -450,10 +488,12 @@ $(function() {
     deleteConfirm(eventId);
   });
 
-  $(document).on('click', '.delete-event', function() {
-    const eventId = $(this).data('event-id');
-    deleteConfirm(eventId);    
-  })
+  $(document).on('click', '.event-card .delete-event', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const eventId = $(this).closest('.event-card').data('event-id');
+    deleteConfirm(eventId);
+  });
 
   function deleteConfirm(eventId) {
     if(eventId) {
@@ -508,10 +548,11 @@ $(function() {
   }
 
   // Add the event handler for completing events
-  $(document).on('click', '.complete-event', function(e) {
-      e.preventDefault();
-      const eventId = $(this).data('event-id');
-      completeConfirm(eventId);
+  $(document).on('click', '.event-card .complete-event', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const eventId = $(this).closest('.event-card').data('event-id');
+    completeConfirm(eventId);
   });
 
   // Add confirmation dialog for completion
