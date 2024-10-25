@@ -20,6 +20,7 @@
 
   <!-- Right navbar links -->
   <ul class="navbar-nav ml-auto">
+    @include('offline.status')
     <!-- Username -->
     <li class="nav-item">
       <span class="nav-link">
