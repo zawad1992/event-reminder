@@ -82,6 +82,7 @@ class EventsController extends Controller
 
             $event = new Event();
             $event->reminder_id = $reminderId;
+            $event->title = $request->title;
             $event->description = $request->description;
             $event->event_type_id = $request->event_type_id;
             $event->start_date = $start_date;
