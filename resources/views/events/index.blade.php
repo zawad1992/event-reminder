@@ -10,16 +10,15 @@
 <div class="content-wrapper kanban ml-0" style="background-color: #fff;">
   <section class="content pb-3">
     <div class="container-fluid h-100">
+
       <div class="card card-row card-secondary">
         <div class="card-header">
-          <h3 class="card-title">
-            Backlog
-          </h3>
+          <h3 class="card-title">New Event</h3>
         </div>
         <div class="card-body">
           <div class="card card-info card-outline">
             <div class="card-header">
-              <h5 class="card-title">Create Labels</h5>
+              <h5 class="card-title">Create Event</h5>
               <div class="card-tools">
                 <a href="#" class="btn btn-tool btn-link">#3</a>
                 <a href="#" class="btn btn-tool">
@@ -28,136 +27,127 @@
               </div>
             </div>
             <div class="card-body">
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox1" disabled>
-                <label for="customCheckbox1" class="custom-control-label">Bug</label>
+              <div class="d-flex justify-content-center align-items-center pred-events-loader" style="min-height: 200px;"> 
+                <i class="fas fa-sync fa-spin fa-4x"></i> 
               </div>
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox2" disabled>
-                <label for="customCheckbox2" class="custom-control-label">Feature</label>
+              <div id="external-events">
+                <form id="eventForm">
+                  <!-- Form Content -->
+                  <div class="form-group">
+                    <label for="eventType">Event Type <span class="text-danger">*</span></label>
+                    <select class="form-control form-control-sm" id="eventType"></select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="eventTitle">Event Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" id="eventTitle">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="eventDescription">Description</label>
+                    <textarea class="form-control form-control-sm" id="eventDescription" rows="3"></textarea>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="eventStart">Start Time <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm date" id="startDatePicker" data-target-input="nearest">
+                      <input type="text" class="form-control form-control-sm datetimepicker-input" id="eventStart" data-target="#startDatePicker"/>
+                      <div class="input-group-append" data-target="#startDatePicker" data-toggle="datetimepicker">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="eventEnd">End Time <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm date" id="endDatePicker" data-target-input="nearest">
+                      <input type="text" class="form-control form-control-sm datetimepicker-input" id="eventEnd" data-target="#endDatePicker"/>
+                      <div class="input-group-append" data-target="#endDatePicker" data-toggle="datetimepicker">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row mb-3">
+                    <div class="col-6">
+                      <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input custom-control-input-success" type="checkbox" id="eventAllDay">
+                        <label for="eventAllDay" class="custom-control-label" style="cursor: pointer">Is All Day?</label>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input custom-control-input-danger" type="checkbox" id="eventReminder" checked>
+                        <label for="eventReminder" class="custom-control-label" style="cursor: pointer">Reminder?</label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="custom-control custom-checkbox mb-3">
+                    <input class="custom-control-input custom-control-input-info" type="checkbox" id="eventRecurring">
+                    <label for="eventRecurring" class="custom-control-label" style="cursor: pointer">Recurring?</label>
+                  </div>
+                  
+                  <div class="form-group" id="recurringPeriodDiv">
+                    <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
+                      <label class="btn btn-outline-info active">
+                        <input type="radio" class="recurring-type" id="recurringType1" name="recurringType" value="1" checked> Daily
+                      </label>
+                      <label class="btn btn-outline-info">
+                        <input type="radio" class="recurring-type" id="recurringType2" name="recurringType" value="2"> Weekly
+                      </label>
+                      <label class="btn btn-outline-info">
+                        <input type="radio" class="recurring-type" id="recurringType3" name="recurringType" value="3"> Monthly
+                      </label>
+                      <label class="btn btn-outline-info">
+                        <input type="radio" class="recurring-type" id="recurringType4" name="recurringType" value="4"> Yearly
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group" id="recurringCountDiv">
+                    <label for="recurringCount" class="mb-2">Recurring Count</label>
+                    <div class="input-group input-group-sm" style="width: 100px">
+                      <div class="input-group-prepend">
+                        <button type="button" class="btn btn-danger btn-sm btn-flat decrease" id="decreaseCount">
+                          <i class="fas fa-minus fa-sm"></i>
+                        </button>
+                      </div>
+                      <input type="text" class="form-control form-control-sm text-center" id="recurringCount" value="1" min="1" max="100" readonly>
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-success btn-sm btn-flat increase" id="increaseCount">
+                          <i class="fas fa-plus fa-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Action Buttons -->
+                  <div class="text-right mt-4">
+                    <button type="button" class="btn btn-danger btn-sm" id="deleteEvent">Delete</button>
+                    <button type="button" class="btn btn-success btn-sm" id="updateEvent">Update</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="createEvent">Create</button>
+                  </div>
+                </form>
               </div>
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox3" disabled>
-                <label for="customCheckbox3" class="custom-control-label">Enhancement</label>
-              </div>
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox4" disabled>
-                <label for="customCheckbox4" class="custom-control-label">Documentation</label>
-              </div>
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox5" disabled>
-                <label for="customCheckbox5" class="custom-control-label">Examples</label>
-              </div>
-            </div>
-          </div>
-          <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Create Issue template</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#4</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox1_1" disabled>
-                <label for="customCheckbox1_1" class="custom-control-label">Bug Report</label>
-              </div>
-              <div class="custom-control custom-checkbox">
-                <input class="custom-control-input" type="checkbox" id="customCheckbox1_2" disabled>
-                <label for="customCheckbox1_2" class="custom-control-label">Feature Request</label>
-              </div>
-            </div>
-          </div>
-          <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Create PR template</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#6</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-          <div class="card card-light card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Create Actions</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#7</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-
-            </div>
-            <div class="card-body">
-              <p>
-                Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-                Aenean commodo ligula eget dolor. Aenean massa.
-                Cum sociis natoque penatibus et magnis dis parturient montes,
-                nascetur ridiculus mus.
-              </p>
             </div>
           </div>
         </div>
       </div>
+
       <div class="card card-row card-primary">
         <div class="card-header">
           <h3 class="card-title">
-            To Do
+            Upcoming Events
           </h3>
         </div>
-        <div class="card-body">
-          <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Create first milestone</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#5</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-            </div>
-          </div>
+        <div class="card-body upcomingEvents">
+         
         </div>
       </div>
-      <div class="card card-row card-default">
-        <div class="card-header bg-info">
-          <h3 class="card-title">
-            In Progress
-          </h3>
-        </div>
-        <div class="card-body">
-          <div class="card card-light card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Update Readme</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#2</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-            </div>
-            <div class="card-body">
-              <p>
-                Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
-                Aenean commodo ligula eget dolor. Aenean massa.
-                Cum sociis natoque penatibus et magnis dis parturient montes,
-                nascetur ridiculus mus.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+
       <div class="card card-row card-success">
-        <div class="card-header">
-          <h3 class="card-title">
-            Done
-          </h3>
-        </div>
+        <div class="card-header"> <h3 class="card-title"> Completed Event </h3> </div>
         <div class="card-body">
           <div class="card card-primary card-outline">
             <div class="card-header">
@@ -172,6 +162,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </section>
 </div>
@@ -184,4 +175,5 @@
 <script src="{{ url('public/assets/plugins/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
 <script src="{{ url('public/assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
 <script src="{{ url('public/assets/plugins/filterizr/jquery.filterizr.min.js') }}"></script>
+<script src="{{ url('public/assets/js/event_lists.js') }}"></script>
 @endpush
