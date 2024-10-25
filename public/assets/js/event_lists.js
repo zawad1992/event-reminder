@@ -192,15 +192,12 @@ $(function() {
 
   function createEventCards(events) {
     const upcomingEventsContainer = $('.upcomingEvents');
-    upcomingEventsContainer.empty(); // Clear existing cards
-
+    upcomingEventsContainer.empty();
     
     events.forEach(event => {
         const formattedStartDate = moment(event.start_date).format('MMM DD, YYYY hh:mm A');
         const formattedEndDate = moment(event.end_date).format('MMM DD, YYYY hh:mm A');
-
         const textColor = getContrastColor(event.color);
-        
         
         const cardHtml = `
             <div class="card card-outline" style="border-color: ${event.color}">
@@ -208,8 +205,11 @@ $(function() {
                     <h5 class="card-title" style="font-weight: 500px;">${event.title}</h5>
                     <div class="card-tools">
                         <span class="badge" style="background-color: ${event.color}">#${event.id}</span>
-                        <a href="#" class="btn btn-tool">
+                        <a href="#" class="btn btn-tool edit-event" data-event-id="${event.id}">
                             <i class="fas fa-pen"></i>
+                        </a>
+                        <a href="#" class="btn btn-tool delete-event" data-event-id="${event.id}">
+                            <i class="fas fa-times"></i>
                         </a>
                     </div>
                 </div>
@@ -228,8 +228,33 @@ $(function() {
         `;
         upcomingEventsContainer.prepend(cardHtml);
     });
-}
+  }
 
+  // Add event handler for edit icon
+  $(document).on('click', '.edit-event', function(e) {
+    e.preventDefault();
+    const eventId = $(this).data('event-id');
+    const event = globalEvents.find(e => e.id === eventId);
+    
+    if (event) {
+        loadEventForEdit(event);
+        // Scroll to form
+        $('html, body').animate({
+            scrollTop: $("#eventForm").offset().top - 100
+        }, 500);
+    }
+  });
+
+  // Modify the switchToCreateMode and switchToEditMode functions
+  function switchToCreateMode() {
+    $('#createEvent').show();
+    $('#updateEvent, #deleteEvent, #cancelEdit').hide();
+  }
+
+  function switchToEditMode() {
+    $('#createEvent').hide();
+    $('#updateEvent, #deleteEvent, #cancelEdit').show();
+  }
 
   // Get events from server and initialize
   function loadEvents() {
@@ -250,6 +275,48 @@ $(function() {
             $('.upcomingEvents').html('<div class="text-center text-danger">Error loading events</div>');
         }
     });
+  }
+  
+  // Modify loadEventForEdit function
+  function loadEventForEdit(event) {
+    // Add hidden input for event ID if not exists
+    if (!$('#event_id').length) {
+        $('#eventForm').append('<input type="hidden" id="event_id">');
+    }
+    
+    // Set hidden event ID
+    $('#event_id').val(event.id);
+    
+    // Populate form fields
+    $('#eventTitle').val(event.title);
+    $('#eventDescription').val(event.description || '');
+    $('#eventType').val(event.event_type_id);
+    $('#eventReminder').prop('checked', event.is_reminder === 1);
+    
+    // Handle All Day checkbox and dates
+    $('#eventAllDay').prop('checked', event.is_all_day === 1).trigger('change');
+    
+    // Set dates
+    const startDate = moment(event.start_date);
+    let endDate = moment(event.end_date);
+    
+    if (event.is_all_day === 1) {
+        endDate = endDate.subtract(1, 'days');
+    }
+    
+    $('#startDatePicker').datetimepicker('date', startDate);
+    $('#endDatePicker').datetimepicker('date', endDate);
+    
+    // Handle recurring fields
+    const isRecurring = event.is_recurring === 1;
+    $('#eventRecurring').prop('checked', isRecurring).trigger('change');
+    if(isRecurring) {
+        $(`input[name="recurringType"][value="${event.recurring_type}"]`).prop('checked', true);
+        $('#recurringCount').val(event.recurring_count);
+    }
+    
+    // Switch to edit mode
+    switchToEditMode();
   }
 
   // Create Event
@@ -363,20 +430,21 @@ $(function() {
           data: formData,
           dataType: "json",
           success: function(response) {
-              if (response.success) {
-                  // Update in global events array
-                  const index = globalEvents.findIndex(event => event.id === eventId);
-                  if (index !== -1) {
-                      globalEvents[index] = formData;
-                  }
-
-                  console.log(globalEvents);
-                  
-                  // Reset form and switch to create mode
-                  resetForm();
-                  switchToCreateMode();
-                  customAlert('Success', 'Event updated successfully', 'green');
-              }
+            if (response.success) {
+                // Update in global events array
+                const index = globalEvents.findIndex(event => event.id === eventId);
+                if (index !== -1) {
+                    globalEvents[index] = formData;
+                }
+                
+                // Refresh event cards
+                createEventCards(globalEvents);
+                
+                // Reset form and switch to create mode
+                resetForm();
+                switchToCreateMode();
+                customAlert('Success', 'Event updated successfully', 'green');
+            }
           },
           error: function(xhr) {
               customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
@@ -384,32 +452,46 @@ $(function() {
       });
   });
 
+  // Add cancel button handler
+  $('#cancelEdit').click(function() {
+    resetForm();
+    switchToCreateMode();
+  });
+
   // Delete Event
   $('#deleteEvent').click(function() {
-      const eventId = $('#event_id').val();
-      
-      if(eventId) {
-          $.confirm({
-              title: 'Delete Event',
-              content: 'Are you sure you want to delete this event?',
-              type: 'red',
-              typeAnimated: true,
-              buttons: {
-                  yes: {
-                      text: 'Yes',
-                      btnClass: 'btn-danger',
-                      action: function() {
-                          deleteEvent(eventId);
-                      }
-                  },
-                  no: {
-                      text: 'No',
-                      btnClass: 'btn-secondary'
-                  }
-              }
-          });
-      }
+    const eventId = $('#event_id').val();
+    deleteConfirm(eventId);
   });
+
+  $(document).on('click', '.delete-event', function() {
+    const eventId = $(this).data('event-id');
+    deleteConfirm(eventId);    
+  })
+
+  function deleteConfirm(eventId) {
+    if(eventId) {
+      $.confirm({
+          title: 'Delete Event',
+          content: 'Are you sure you want to delete this event?',
+          type: 'red',
+          typeAnimated: true,
+          buttons: {
+              yes: {
+                  text: 'Yes',
+                  btnClass: 'btn-danger',
+                  action: function() {
+                      deleteEvent(eventId);
+                  }
+              },
+              no: {
+                  text: 'No',
+                  btnClass: 'btn-secondary'
+              }
+          }
+      });
+    }
+  }
 
   function deleteEvent(eventId) {
       $.ajax({
@@ -418,12 +500,19 @@ $(function() {
           dataType: "json",
           success: function(response) {
               if (response.success) {
-                  // Remove from global events array
-                  globalEvents = globalEvents.filter(event => event.id !== eventId);
-                  
-                  resetForm();
-                  switchToCreateMode();
-                  customAlert('Success', 'Event deleted successfully', 'green');
+                // Remove from global events array
+                globalEvents = globalEvents.filter(event => event.id !== parseInt(eventId));
+                
+                // Always refresh the event cards
+                if(globalEvents.length > 0) {
+                  createEventCards(globalEvents);
+                } else {
+                  $('.upcomingEvents').html('<div class="text-center text-muted">No upcoming events</div>');
+                }
+
+                resetForm();
+                switchToCreateMode();
+                customAlert('Success', 'Event deleted successfully', 'green');                  
               }
           },
           error: function(xhr) {
@@ -455,13 +544,13 @@ $(function() {
   }
 
   function switchToCreateMode() {
-      $('#createEvent').show();
-      $('#updateEvent, #deleteEvent').hide();
+    $('#createEvent').show();
+    $('#updateEvent, #deleteEvent, #cancelEdit').hide();
   }
 
   function switchToEditMode() {
-      $('#createEvent').hide();
-      $('#updateEvent, #deleteEvent').show();
+    $('#createEvent').hide();
+    $('#updateEvent, #deleteEvent, #cancelEdit').show();
   }
 
 

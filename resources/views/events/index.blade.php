@@ -19,12 +19,6 @@
           <div class="card card-info card-outline">
             <div class="card-header">
               <h5 class="card-title">Create Event</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#3</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
             </div>
             <div class="card-body">
               <div class="d-flex justify-content-center align-items-center pred-events-loader" style="min-height: 200px;"> 
@@ -125,6 +119,7 @@
                   <!-- Action Buttons -->
                   <div class="text-right mt-4">
                     <button type="button" class="btn btn-danger btn-sm" id="deleteEvent">Delete</button>
+                    <button type="button" class="btn btn-warning btn-sm" id="cancelEdit" style="display:none;">Cancel</button>
                     <button type="button" class="btn btn-success btn-sm" id="updateEvent">Update</button>
                     <button type="button" class="btn btn-primary btn-sm" id="createEvent">Create</button>
                   </div>
