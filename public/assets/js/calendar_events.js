@@ -249,6 +249,8 @@ $(function() {
                 $(`input[name="recurringType"][value="${event.extendedProps.recurringType}"]`).prop('checked', true);
                 $('#recurringCount').val(event.extendedProps.recurringCount);
             }
+
+            $('#externalParticipants').val(event.extendedProps.externalParticipants || '');
             
             // Update modal state
             $('#eventModal').data('event', event);
@@ -416,7 +418,8 @@ $(function() {
         is_reminder: isReminder,
         is_recurring: isRecurring,
         recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
-        recurring_count: isRecurring ? $('#recurringCount').val() : null
+        recurring_count: isRecurring ? $('#recurringCount').val() : null,
+        external_participants: $('#externalParticipants').val()
     };
 
     // Add the dropped event's type if it exists
@@ -449,7 +452,8 @@ $(function() {
               isAllDay: formData.is_all_day,
               isRecurring: formData.is_recurring,
               recurringType: formData.recurring_type,
-              recurringCount: formData.recurring_count
+              recurringCount: formData.recurring_count,
+              externalParticipants: formData.external_participants
             }
           });
           
@@ -505,7 +509,8 @@ $(function() {
         is_reminder: isReminder,
         is_recurring: isRecurring,
         recurring_type: isRecurring ? $('input[name="recurringType"]:checked').val() : null,
-        recurring_count: isRecurring ? $('#recurringCount').val() : null
+        recurring_count: isRecurring ? $('#recurringCount').val() : null,
+        external_participants: $('#externalParticipants').val()
     };
 
     // Add the dropped event's type if it exists
@@ -543,7 +548,8 @@ $(function() {
                             isAllDay: formData.is_all_day,
                             isRecurring: formData.is_recurring,
                             recurringType: formData.recurring_type,
-                            recurringCount: formData.recurring_count
+                            recurringCount: formData.recurring_count,
+                            externalParticipants: formData.external_participants
                         }
                     });
 
@@ -925,7 +931,9 @@ $(function() {
             isAllDay: event.is_all_day,
             isRecurring: event.is_recurring,
             recurringType: event.recurring_type,
-            recurringCount: event.recurring_count
+            recurringCount: event.recurring_count,
+            externalParticipants: event.external_participants
+
           },
         }));
       }

@@ -86,6 +86,11 @@
             </div>
           </div>
         </div>
+        <div class="form-group mt-3">
+          <label for="externalParticipants">External Participants</label>
+          <textarea class="form-control" id="externalParticipants" placeholder="Enter email addresses separated by commas"></textarea>
+          <small class="text-muted">Add multiple email addresses separated by commas (e.g., john@example.com, jane@example.com)</small>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-danger" id="deleteEvent">Delete</button>
