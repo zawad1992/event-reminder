@@ -456,6 +456,9 @@ $(function() {
   function rebindEventHandlers() {
     // Remove existing handlers
     $(document).off('click', '.edit-event');
+    $(document).off('click', '.complete-event');
+    $(document).off('click', '.delete-event');
+    
     
     // Rebind edit event handler
     $(document).on('click', '.edit-event', function(e) {
@@ -474,6 +477,21 @@ $(function() {
             }, 500);
         }
     });
+    // Rebind complete event handler
+    $(document).on('click', '.complete-event', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const eventId = $(this).data('event-id');
+        completeConfirm(eventId);
+    });
+
+    // Rebind delete event handler
+    $(document).on('click', '.delete-event', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const eventId = $(this).data('event-id');
+        deleteConfirm(eventId);
+    });
   }
 
   // Add cancel button handler
@@ -485,13 +503,6 @@ $(function() {
   // Delete Event
   $('#deleteEvent').click(function() {
     const eventId = $('#event_id').val();
-    deleteConfirm(eventId);
-  });
-
-  $(document).on('click', '.event-card .delete-event', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const eventId = $(this).closest('.event-card').data('event-id');
     deleteConfirm(eventId);
   });
 
@@ -547,13 +558,6 @@ $(function() {
       });
   }
 
-  // Add the event handler for completing events
-  $(document).on('click', '.event-card .complete-event', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const eventId = $(this).closest('.event-card').data('event-id');
-    completeConfirm(eventId);
-  });
 
   // Add confirmation dialog for completion
   function completeConfirm(eventId) {
