@@ -40,7 +40,7 @@ class EventsController extends Controller
 
     public function get_events()
     {
-        $user_id = 1; // Will change later
+        
         if(Auth::check()){
             $user_id = Auth::user()->id;
         }
@@ -72,13 +72,7 @@ class EventsController extends Controller
             $end_date = $endDateTime->format('Y-m-d');
             $end_time = $endDateTime->format('H:i:0');
             
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            } else {
-                // Force login user with ID 1
-                Auth::loginUsingId(1);
-            }               
+            $user_id = Auth::user()->id;             
     
             $reminderId = $this->reminderIdGenerator->generateReminderId(Auth::user());
 
@@ -120,13 +114,9 @@ class EventsController extends Controller
     public function event_upload(EventUploadRequest $request)
     {
         try {
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            } else {
-                // Force login user with ID 1
-                Auth::loginUsingId(1);
-            }  
+            
+            $user_id = Auth::user()->id;
+
             $eventTypes = EventType::select('id', 'color')->where(function($query) use ($user_id){
                 $query->where('is_user_defined', 0);
                 if($user_id){
@@ -231,10 +221,8 @@ class EventsController extends Controller
             $end_date = $endDateTime->format('Y-m-d');
             $end_time = $endDateTime->format('H:i:0');
 
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            }
+            
+            $user_id = Auth::user()->id;
 
             $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
             $event->title = $request->title;
@@ -269,10 +257,8 @@ class EventsController extends Controller
     public function event_complete($id)
     {
         try {
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            }
+            
+            $user_id = Auth::user()->id;
 
             $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
             $event->is_completed = 1;
@@ -296,10 +282,8 @@ class EventsController extends Controller
     {
         try {
 
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            }
+            
+            $user_id = Auth::user()->id;
 
             $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
             $event->delete();
@@ -317,7 +301,7 @@ class EventsController extends Controller
 
     public function types()
     {
-        $user_id = 1; // Will change later
+        
         if(Auth::check()){
             $user_id = Auth::user()->id;
         }
@@ -339,7 +323,7 @@ class EventsController extends Controller
         $color = $request->color;
         $is_user_defined = $request->is_user_defined;
 
-        $user_id = 1; // Will change later
+        
         if(Auth::check()){
             $user_id = Auth::user()->id;
         }
@@ -403,10 +387,8 @@ class EventsController extends Controller
     {
         try {
             // Get all the event types
-            $user_id = 1; // Will change later
-            if(Auth::check()){
-                $user_id = Auth::user()->id;
-            }
+            
+            $user_id = Auth::user()->id;
         
             $eventTypes = EventType::select('id', 'title', 'color', 'is_user_defined')->where(function($query) use ($user_id){
                                         $query->where('is_user_defined', 0);
