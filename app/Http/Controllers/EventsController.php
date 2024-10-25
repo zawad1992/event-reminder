@@ -81,6 +81,7 @@ class EventsController extends Controller
             $event->reminder_id = $reminderId;
             $event->title = $request->title;
             $event->description = $request->description;
+            $event->external_participants = $request->external_participants;
             $event->event_type_id = $request->event_type_id;
             $event->start_date = $start_date;
             $event->end_date = $end_date;
@@ -114,27 +115,24 @@ class EventsController extends Controller
     public function event_upload(EventUploadRequest $request)
     {
         try {
-            
             $user_id = Auth::user()->id;
 
-            $eventTypes = EventType::select('id', 'color')->where(function($query) use ($user_id){
-                $query->where('is_user_defined', 0);
-                if($user_id){
-                    $query->orWhere('user_id', $user_id);
-                }
-            })->pluck('color','id')->toArray();
-
-
+            $eventTypes = EventType::select('id', 'color')
+                ->where(function($query) use ($user_id){
+                    $query->where('is_user_defined', 0);
+                    if($user_id){
+                        $query->orWhere('user_id', $user_id);
+                    }
+                })->pluck('color','id')->toArray();
 
             DB::beginTransaction();
             
             $file = $request->file('event_file');
             
-            // Create CSV reader
             $csv = Reader::createFromPath($file->getPathname(), 'r');
-            $csv->setHeaderOffset(0); // Set the CSV header offset
+            $csv->setHeaderOffset(0);
             
-            $records = $csv->getRecords(); // Get all records except the header
+            $records = $csv->getRecords();
             $imported = 0;
             $errors = [];           
             
@@ -154,7 +152,28 @@ class EventsController extends Controller
                     } catch (\Exception $e) {
                         $errors[] = "Row " . ($offset + 2) . ": Invalid date format";
                         continue;
-                    }                     
+                    }
+
+                    // Process external participants - clean and validate emails
+                    $externalParticipants = null;
+                    if (!empty($record['external_participants'])) {
+                        // Split emails and clean them
+                        $emails = array_map('trim', explode(',', $record['external_participants']));
+                        $validEmails = [];
+                        
+                        foreach ($emails as $email) {
+                            if (!empty($email)) {  // Skip empty emails
+                                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                    $errors[] = "Row " . ($offset + 2) . ": Invalid email format: {$email}";
+                                    continue 2;
+                                }
+                                $validEmails[] = $email;
+                            }
+                        }
+                        
+                        // Join valid emails back into a string
+                        $externalParticipants = !empty($validEmails) ? implode(', ', $validEmails) : null;
+                    }
 
                     $reminderId = app(ReminderIdGenerator::class)->generateReminderId(Auth::user());
 
@@ -174,6 +193,7 @@ class EventsController extends Controller
                     $event->is_recurring = $record['is_recurring'] ?? 0;
                     $event->recurring_type = $record['recurring_type'] ?? null;
                     $event->recurring_count = $record['recurring_count'] ?? null;
+                    $event->external_participants = $externalParticipants;  // Use processed emails
                     $event->user_id = $user_id;
                     
                     $event->save();
@@ -186,7 +206,6 @@ class EventsController extends Controller
 
             DB::commit();
 
-            // Set flash messages for success and errors
             if ($imported > 0) {
                 session()->flash('success', "{$imported} events were imported successfully.");
             }
@@ -199,6 +218,7 @@ class EventsController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('CSV Upload Error: ' . $e->getMessage());  // Add logging
             return redirect()->back()
                 ->with('error', 'Failed to process CSV file: ' . $e->getMessage());
         }
@@ -227,6 +247,7 @@ class EventsController extends Controller
             $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
             $event->title = $request->title;
             $event->description = $request->description;
+            $event->external_participants = $request->external_participants;
             $event->event_type_id = $request->event_type_id;
             $event->start_date = $start_date;
             $event->end_date = $end_date;
@@ -253,6 +274,7 @@ class EventsController extends Controller
             ], 500);
         }
     }
+    
 
     public function event_complete($id)
     {
@@ -387,44 +409,85 @@ class EventsController extends Controller
     {
         try {
             // Get all the event types
-            
             $user_id = Auth::user()->id;
         
-            $eventTypes = EventType::select('id', 'title', 'color', 'is_user_defined')->where(function($query) use ($user_id){
-                                        $query->where('is_user_defined', 0);
-                                        if($user_id){
-                                            $query->orWhere('user_id', $user_id);
-                                        }
-                                    })->get()->toArray();
+            $eventTypes = EventType::select('id', 'title', 'color', 'is_user_defined')
+                ->where(function($query) use ($user_id){
+                    $query->where('is_user_defined', 0);
+                    if($user_id){
+                        $query->orWhere('user_id', $user_id);
+                    }
+                })->get()->toArray();
 
-            // Create the sample events content
-            $sampleHeaders = [ 'title', 'description', 'event_type_id', 'start_date', 'end_date', 'is_all_day', 'is_reminder', 'is_recurring', 'recurring_type', 'recurring_count' ];
-
-            $sampleData = [
-                [ 'Daily Meeting', 'Daily standup meeting', 1, '2024-10-25 09:00:00', '2024-10-25 09:30:00', 0, 1, 1, '1', 5 ],
-                [ 'Weekly Review', 'Team weekly status review', 2, '2024-10-28 14:00:00', '2024-10-28 15:00:00', 0, 1, 1, '2', 4 ],
-                [ 'Monthly Report', 'Monthly progress report meeting', 3, '2024-11-01 10:00:00', '2024-11-01 11:00:00', 0, 1, 1, '3', 12 ]
+            // Create the sample events content with external_participants at the end
+            $sampleHeaders = [
+                'title', 
+                'description', 
+                'event_type_id', 
+                'start_date', 
+                'end_date', 
+                'is_all_day', 
+                'is_reminder', 
+                'is_recurring', 
+                'recurring_type', 
+                'recurring_count',
+                'external_participants'  // Moved to last column
             ];
 
-            // Generate events CSV content
-            $eventsContent = $this->generateCsvContent([$sampleHeaders, ...$sampleData]);
+            $sampleData = [
+                [
+                    'Daily Meeting',
+                    'Daily standup meeting',
+                    1,
+                    '2024-10-25 09:00:00',
+                    '2024-10-25 09:30:00',
+                    0,
+                    1,
+                    1,
+                    '1',
+                    5,
+                    'john@example.com, jane@example.com'  // Moved to last column
+                ],
+                [
+                    'Weekly Review',
+                    'Team weekly status review',
+                    2,
+                    '2024-10-28 14:00:00',
+                    '2024-10-28 15:00:00',
+                    0,
+                    1,
+                    1,
+                    '2',
+                    4,
+                    'manager@example.com'  // Moved to last column
+                ],
+                [
+                    'Monthly Report',
+                    'Monthly progress report meeting',
+                    3,
+                    '2024-11-01 10:00:00',
+                    '2024-11-01 11:00:00',
+                    0,
+                    1,
+                    1,
+                    '3',
+                    12,
+                    ''  // Empty external participants in last column
+                ]
+            ];
 
-            // Generate guidelines content
+            // Rest of the function remains the same...
+            $eventsContent = $this->generateCsvContent([$sampleHeaders, ...$sampleData]);
             $guidelinesContent = $this->generateGuidelinesContent($eventTypes);
 
-            // Check if ZipArchive is available and functioning
             if (class_exists('ZipArchive') && $this->isZipWorkable()) {
                 return $this->generateZipDownload($eventsContent, $guidelinesContent);
             }
 
-            // Fallback to single CSV
             return $this->generateSingleCsvDownload($eventsContent, $guidelinesContent);
 
         } catch (\Exception $e) {
-            // Log the error
             \Log::error('Error generating sample CSV: ' . $e->getMessage());
-            
-            // Return a simple error response
             return response()->json([
                 'error' => 'Unable to generate sample file. Please contact support.'
             ], 500);

@@ -192,6 +192,14 @@ $(function() {
                         ${event.is_reminder ? '<span class="ml-2"><i class="fas fa-bell text-warning"></i></span>' : ''}
                         ${event.is_recurring ? '<span class="ml-2"><i class="fas fa-sync-alt text-info"></i></span>' : ''}
                     </div>
+                    ${event.external_participants ? `
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-users mr-1"></i>
+                                External Participants: ${event.external_participants}
+                            </small>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -281,6 +289,7 @@ $(function() {
     // Populate form fields
     $('#eventTitle').val(event.title);
     $('#eventDescription').val(event.description || '');
+    $('#externalParticipants').val(event.external_participants || '');
     $('#eventType').val(event.event_type_id);
     $('#eventReminder').prop('checked', event.is_reminder === 1);
     
@@ -336,6 +345,7 @@ $(function() {
       const formData = {
           title: $('#eventTitle').val(),
           description: $('#eventDescription').val(),
+          external_participants: $('#externalParticipants').val(),
           event_type_id: $('#eventType').val(),
           start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
           end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
@@ -404,6 +414,7 @@ $(function() {
         id: eventId,
         title: $('#eventTitle').val(),
         description: $('#eventDescription').val(),
+        external_participants: $('#externalParticipants').val(),
         event_type_id: $('#eventType').val(),
         start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
         end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
@@ -619,6 +630,7 @@ $(function() {
       $('#event_id').val('');
       $('#eventTitle').val('');
       $('#eventDescription').val('');
+      $('#externalParticipants').val('');
       $('#eventAllDay').prop("checked", false).trigger('change');
       $('#eventRecurring').prop("checked", false).trigger('change');
       $('#eventReminder').prop("checked", false);

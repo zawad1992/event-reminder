@@ -11,11 +11,23 @@ class Event extends Model
 
     protected $table = 'events';
     protected $fillable = [
+        'reminder_id',
+        'user_id',
         'title',
         'description',
+        'event_type_id',
         'start_date',
         'end_date',
-        'user_id',
+        'start_time',
+        'end_time',
+        'color',
+        'is_all_day',
+        'is_reminder',
+        'is_recurring',
+        'recurring_type',
+        'recurring_count',
+        'external_participants',
+        'is_completed'
     ];
 
 }

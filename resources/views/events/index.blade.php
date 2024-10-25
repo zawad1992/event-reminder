@@ -65,7 +65,7 @@
               <div class="mt-3">
                 <p class="mb-2">CSV Format Requirements:</p>
                 <ul class="text-muted">
-                    <li>First row must contain these headers: title, description, event_type_id, start_date, end_date, is_all_day, is_reminder, is_recurring, recurring_type, recurring_count</li>
+                    <li>First row must contain these headers: title, description, event_type_id, start_date, end_date, is_all_day, is_reminder, is_recurring, recurring_type, recurring_count,external_participants</li>
                     <li>Required fields:
                         <ul>
                             <li>title - Event name</li>
@@ -84,6 +84,7 @@
                             <li>is_recurring - Use 1 for yes, 0 for no</li>
                             <li>recurring_type - Use 1=Daily, 2=Weekly, 3=Monthly, 4=Yearly</li>
                             <li>recurring_count - Number of recurrences</li>
+                            <li>external_participants - Comma separated list of email addresses</li>
                         </ul>
                     </li>
                 </ul>
@@ -202,6 +203,12 @@
                         </button>
                       </div>
                     </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="externalParticipants">External Participants</label>
+                    <textarea class="form-control form-control-sm" id="externalParticipants" rows="2" placeholder="Enter email addresses separated by commas"></textarea>
+                    <small class="form-text text-muted">Add multiple email addresses separated by commas (e.g., john@example.com, jane@example.com)</small>
                   </div>
                   
                   <!-- Action Buttons -->
