@@ -4,9 +4,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EventsController;
 use App\Http\Controllers\HomeController;
 
+
 // Public routes (accessible to everyone)
 Route::get('/', function () {
-    return view('welcome');
+
+    if(Auth::check()){
+        $title = 'Events';
+        $title_for_layout = 'Events List';
+        return view('events.index', compact('title', 'title_for_layout'));
+    } else {
+        return redirect('/login');
+    }
 });
 
 // Authentication Routes
@@ -14,8 +22,6 @@ Auth::routes();
 
 // Protected routes (only for authenticated users)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-
     // Calendar Routes
     Route::get('/events', [EventsController::class, 'calendar'])->name('events.calendar');
     Route::get('/get_events', [EventsController::class, 'get_events'])->name('events.get_events');
