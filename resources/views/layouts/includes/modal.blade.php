@@ -110,11 +110,11 @@
           <div class="modal-body">
               <input type="hidden" id="edit-event-id">
               <div class="form-group">
-                  <label>Event Title</label>
+                  <label for="edit-event-title">Event Title</label>
                   <input type="text" class="form-control" id="edit-event-title">
               </div>
               <div class="form-group">
-                  <label>Color</label>
+                  <label for="edit-event-title">Color</label>
                   <div class="btn-group">
                       <ul class="fc-color-picker" id="edit-color-chooser">
                           <li><a data-color="#3c8dbc" style="color: #3c8dbc" href="#"><i class="fas fa-square"></i></a></li>
