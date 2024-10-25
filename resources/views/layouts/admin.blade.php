@@ -12,9 +12,8 @@
   <meta name="apple-mobile-web-app-title" content="Event Reminder">
   
   <!-- Add PWA manifest -->
-  <link rel="manifest" href="{{url('assets/pwa/manifest.json')}}">
-  {{-- <link rel="manifest" href="{{ route('manifest') }}"> --}}
-  {{-- <link rel="manifest" href="{{ url('/manifest.json') }}"> --}}
+  {{-- <link rel="manifest" href="{{url('assets/pwa/manifest.json')}}"> --}}
+  <link rel="manifest" href="{{ route('manifest') }}">
 
 
   <link rel="icon" href="{{ asset('favicon.ico') }}">
