@@ -17,12 +17,4 @@
   <section class="content">
     @yield('content')
   </section>
-  
-
-  {{-- <section class="content">
-    <div class="card">
-      <div class="card-body">
-      </div>
-    </div>
-  </section> --}}
 </div>
