@@ -4,12 +4,98 @@
   <link rel="stylesheet" href="{{ url('public/assets/plugins/ekko-lightbox/ekko-lightbox.css') }}">
   <link rel="stylesheet" href="{{ url('public/assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
   <link rel="stylesheet" href="{{ url('public/assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
+
+  <style type="text/css">
+    .content-wrapper.kanban .card.card-row {
+      width: 450px;
+    }
+    /* Media Query For mobile device */
+    @media only screen and (max-width: 600px) {
+      .content-wrapper.kanban .card.card-row {
+        width: 100%;
+      }
+    }
+  </style>
 @endpush
 
 @section('content')
 <div class="content-wrapper kanban ml-0" style="background-color: #fff;">
   <section class="content pb-3">
     <div class="container-fluid h-100">
+      <div class="card card-row card-info">
+        <div class="card-header">
+          <h3 class="card-title">Upload Event</h3>
+        </div>
+        <div class="card-body">
+          <div class="card card-success card-outline">
+            <div class="card-header">
+              <h3 class="card-title"> Upload Event </h3>
+            </div>
+            <div class="card-body">
+              @if(session('success')) <div class="alert alert-success"> {{ session('success') }} </div> @endif
+              @if(session('warning')) <div class="alert alert-warning"> <strong>Warnings:</strong> <pre>{{ session('warning') }}</pre> </div> @endif
+              @if(session('error')) <div class="alert alert-danger"> {{ session('error') }} </div> @endif
+      
+              @if($errors->any())
+                  <div class="alert alert-danger">
+                      <ul class="mb-0">
+                          @foreach($errors->all() as $error)
+                              <li>{{ $error }}</li>
+                          @endforeach
+                      </ul>
+                  </div>
+              @endif
+              <form role="form" action="{{ route('events.upload') }}" method="POST" id="uploadEventForm" enctype="multipart/form-data">
+                @csrf
+                <div class="form-group">
+                  <label for="exampleInputFile">File input</label>
+                  <div class="input-group">
+                    <div class="custom-file">
+                      <input type="file" class="custom-file-input" id="exampleInputFile" name="event_file">
+                      <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                    </div>
+                    <div class="input-group-append">
+                      <button type="submit" class="input-group-text">Upload</button>
+                    </div>
+                  </div>
+                  <div class="error"></div>
+                </div>
+              </form>
+
+              <div class="mt-3">
+                <p class="mb-2">CSV Format Requirements:</p>
+                <ul class="text-muted">
+                    <li>First row must contain these headers: title, description, event_type_id, start_date, end_date, color, is_all_day, is_reminder, is_recurring, recurring_type, recurring_count</li>
+                    <li>Required fields:
+                        <ul>
+                            <li>title - Event name</li>
+                            <li>event_type_id - Must be an existing event type ID</li>
+                            <li>start_date - Format: YYYY-MM-DD HH:mm:ss</li>
+                            <li>end_date - Format: YYYY-MM-DD HH:mm:ss</li>
+                        </ul>
+                    </li>
+                    <li>Optional fields:
+                        <ul>
+                            <li>description - Event details</li>
+                            <li>is_all_day - Use 1 for yes, 0 for no</li>
+                            <li>is_reminder - Use 1 for yes, 0 for no</li>
+                            <li>is_recurring - Use 1 for yes, 0 for no</li>
+                            <li>recurring_type - Use 1=Daily, 2=Weekly, 3=Monthly, 4=Yearly</li>
+                            <li>recurring_count - Number of recurrences</li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <div class="mt-3">
+                    <a href="{{ route('events.sample-csv') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-download mr-1"></i> Download Sample CSV
+                    </a>
+                </div>
+              </div>
+            </div>                
+          </div>
+        </div>
+      </div>
 
       <div class="card card-row card-secondary">
         <div class="card-header">
