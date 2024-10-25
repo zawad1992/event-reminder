@@ -2,13 +2,13 @@
   <!-- Left navbar links -->
   <ul class="nav nav-tabs">
     <li class="nav-item">
-      <a href="{{url('/events')}}" class="nav-link {{ request()->is('events') ? 'active' : '' }}">
-        <i class="far fa-calendar-alt mr-2"></i> Calendar
+      <a href="{{url('/events/list')}}" class="nav-link {{ request()->is('events/list') ? 'active' : '' }}">
+        <i class="fas fa-list mr-2"></i> Event List
       </a>
     </li>
     <li class="nav-item">
-      <a href="{{url('/events/list')}}" class="nav-link {{ request()->is('events/list') ? 'active' : '' }}">
-        <i class="fas fa-list mr-2"></i> Event List
+      <a href="{{url('/events')}}" class="nav-link {{ request()->is('events') ? 'active' : '' }}">
+        <i class="far fa-calendar-alt mr-2"></i> Calendar
       </a>
     </li>
   </ul>
