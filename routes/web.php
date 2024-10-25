@@ -18,6 +18,7 @@ Route::get('/events/list', [EventsController::class, 'index'])->name('events.ind
 Route::get('/event/add', [EventsController::class, 'event_add'])->name('events.add');
 Route::post('/event/add', [EventsController::class, 'event_submit'])->name('events.add');
 Route::put('/event/update/{id}', [EventsController::class, 'event_update'])->name('events.update');
+Route::put('/event/complete/{id}', [EventsController::class, 'event_complete'])->name('events.complete');
 Route::delete('/event/delete/{id}', [EventsController::class, 'event_delete'])->name('events.delete');
 
 
