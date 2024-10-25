@@ -660,6 +660,11 @@ $(function() {
         event_loader('hide');
         if(data.event_types.length > 0) {
           data.event_types.forEach(element => {
+
+            $('.event-type-list').append(
+              `<li> ${element.id} - ${element.title} </li>`
+            );
+            
             $('#eventType').append(
               `<option value="${element.id}" 
               data-color="${element.color}" 
