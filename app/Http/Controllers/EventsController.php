@@ -3,15 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Event;
 use App\Models\EventType;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Services\ReminderIdGenerator;
 
 use Carbon\Carbon;
 
 class EventsController extends Controller
 {
+    private $reminderIdGenerator;
+    
+    public function __construct(ReminderIdGenerator $reminderIdGenerator)
+    {
+        $this->reminderIdGenerator = $reminderIdGenerator;
+    }
 
     public function index()
     {
@@ -60,9 +68,20 @@ class EventsController extends Controller
             $start_time = $startDateTime->format('H:i:0');
             $end_date = $endDateTime->format('Y-m-d');
             $end_time = $endDateTime->format('H:i:0');
+            
+            $user_id = 1; // Will change later
+            if(Auth::check()){
+                $user_id = Auth::user()->id;
+            } else {
+                // Force login user with ID 1
+                Auth::loginUsingId(1);
+            }               
+    
+            $reminderId = $this->reminderIdGenerator->generateReminderId(Auth::user());
+
 
             $event = new Event();
-            $event->title = $request->title;
+            $event->reminder_id = $reminderId;
             $event->description = $request->description;
             $event->event_type_id = $request->event_type_id;
             $event->start_date = $start_date;
@@ -75,12 +94,8 @@ class EventsController extends Controller
             $event->is_recurring = $request->is_recurring;
             $event->recurring_type = $request->recurring_type;
             $event->recurring_count = $request->recurring_count;
-
-            $event->user_id = 1; // Will change later
-
-            if(Auth::check()){
-                $event->user_id = Auth::user()->id;
-            }
+            $event->user_id = $user_id;
+            
             $event->save();
             
             // Hide the user_id field from the JSON response
@@ -115,7 +130,12 @@ class EventsController extends Controller
             $end_date = $endDateTime->format('Y-m-d');
             $end_time = $endDateTime->format('H:i:0');
 
-            $event = Event::findOrFail($id);
+            $user_id = 1; // Will change later
+            if(Auth::check()){
+                $user_id = Auth::user()->id;
+            }
+
+            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
             $event->title = $request->title;
             $event->description = $request->description;
             $event->event_type_id = $request->event_type_id;
@@ -129,11 +149,6 @@ class EventsController extends Controller
             $event->is_recurring = $request->is_recurring;
             $event->recurring_type = $request->recurring_type;
             $event->recurring_count = $request->recurring_count;
-
-            $event->user_id = 1; // Will change later
-            if(Auth::check()){
-                $event->user_id = Auth::user()->id;
-            }
             $event->save();
 
             // Hide the user_id field from the JSON response
@@ -282,5 +297,4 @@ class EventsController extends Controller
             ], 500);
         }
     }
-
 }
