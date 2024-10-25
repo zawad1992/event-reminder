@@ -12,16 +12,17 @@
   <meta name="apple-mobile-web-app-title" content="Event Reminder">
   
   <!-- Add PWA manifest -->
-  {{-- <link rel="manifest" href="{{url('assets/pwa/manifest.json')}}"> --}}
-  <link rel="manifest" href="{{ route('manifest') }}">
+  <link rel="manifest" href="{{url('assets/pwa/manifest.json')}}">
+  {{-- <link rel="manifest" href="{{ route('manifest') }}"> --}}
+  {{-- <link rel="manifest" href="{{ url('/manifest.json') }}"> --}}
 
 
-  <link rel="icon" href="{{ url('favicon.ico') }}">
+  <link rel="icon" href="{{ asset('favicon.ico') }}">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <link rel="stylesheet" href="{{ url('assets/plugins/fontawesome-free/css/all.min.css') }}">
-  <link rel="stylesheet" href="{{ url('assets/dist/css/adminlte.min.css') }}">
-  <link rel="stylesheet" href="{{ url('assets/plugins/jquery-confirm-v3.3.4/css/jquery-confirm.css') }}">
-  <link rel="stylesheet" href="{{ url('assets/css/common.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/plugins/fontawesome-free/css/all.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/dist/css/adminlte.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/plugins/jquery-confirm-v3.3.4/css/jquery-confirm.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/common.css') }}">
 
   @stack('styles')
   
@@ -36,12 +37,12 @@
 <div class="overlay" style="display: none;"><i class="fas fa-cog fa-spin fa-4x"></i><p>Please wait...</p></div>
 
 @include('layouts/includes/modal')
-<script src="{{ url('assets/plugins/jquery/jquery.min.js') }}"></script>
-<script src="{{ url('assets/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url('assets/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
-<script src="{{ url('assets/plugins/jquery-confirm-v3.3.4/js/jquery-confirm.js') }}"></script>
-<script src="{{ url('assets/dist/js/adminlte.min.js') }}"></script>
-<script src="{{ url('assets/js/common.js') }}"></script>
+<script src="{{ asset('assets/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/jquery-confirm-v3.3.4/js/jquery-confirm.js') }}"></script>
+<script src="{{ asset('assets/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ asset('assets/js/common.js') }}"></script>
 <script type="text/javascript">
   var base_url = "{{url('/')}}";
   $.ajaxSetup({
@@ -53,8 +54,8 @@
 @stack('scripts')
 
 <!-- Add these scripts before closing body tag -->
-<script src="{{ url('assets/js/offline/indexedDB.js') }}"></script>
-<script src="{{ url('assets/js/offline/offline-manager.js') }}"></script>
+<script src="{{ asset('assets/js/offline/indexedDB.js') }}"></script>
+<script src="{{ asset('assets/js/offline/offline-manager.js') }}"></script>
     
 <script>
     // Wait for DOM to be ready

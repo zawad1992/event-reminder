@@ -1,9 +1,9 @@
 @extends('layouts.admin')
 
 @push('styles')
-  <link rel="stylesheet" href="{{ url('assets/plugins/ekko-lightbox/ekko-lightbox.css') }}">
-  <link rel="stylesheet" href="{{ url('assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
-  <link rel="stylesheet" href="{{ url('assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/plugins/ekko-lightbox/ekko-lightbox.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css') }}">
 
   <style type="text/css">
     .content-wrapper.kanban .card.card-row {
@@ -256,10 +256,10 @@
 @endsection
 
 @push('scripts')
-<script src="{{ url('assets/plugins/moment/moment.min.js') }}"></script>
-<script src="{{ url('assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
-<script src="{{ url('assets/plugins/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
-<script src="{{ url('assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
-<script src="{{ url('assets/plugins/filterizr/jquery.filterizr.min.js') }}"></script>
-<script src="{{ url('assets/js/event_lists.js') }}"></script>
+<script src="{{ asset('assets/plugins/moment/moment.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/ekko-lightbox/ekko-lightbox.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
+<script src="{{ asset('assets/plugins/filterizr/jquery.filterizr.min.js') }}"></script>
+<script src="{{ asset('assets/js/event_lists.js') }}"></script>
 @endpush

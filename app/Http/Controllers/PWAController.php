@@ -12,7 +12,7 @@ class PWAController extends Controller
         $sizes = [72, 96, 128, 144, 152, 192, 384, 512];
         return array_map(function($size) {
             return [
-                'src' => url("/assets/pwa/icons/icon-{$size}x{$size}.png"),
+                'src' => asset("assets/pwa/icons/icon-{$size}x{$size}.png"),
                 'sizes' => "{$size}x{$size}",
                 'type' => 'image/png'
             ];
