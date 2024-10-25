@@ -205,6 +205,9 @@ $(function() {
                     <h5 class="card-title" style="font-weight: 500px;">${event.title}</h5>
                     <div class="card-tools">
                         <span class="badge" style="background-color: ${event.color}">#${event.id}</span>
+                        <a href="#" class="btn btn-tool complete-event" data-event-id="${event.id}" title="Mark as Complete">
+                            <i class="fas fa-check"></i>
+                        </a>
                         <a href="#" class="btn btn-tool edit-event" data-event-id="${event.id}">
                             <i class="fas fa-pen"></i>
                         </a>
@@ -520,6 +523,66 @@ $(function() {
           }
       });
   }
+
+  // Add the event handler for completing events
+  $(document).on('click', '.complete-event', function(e) {
+      e.preventDefault();
+      const eventId = $(this).data('event-id');
+      completeConfirm(eventId);
+  });
+
+  // Add confirmation dialog for completion
+  function completeConfirm(eventId) {
+    if(eventId) {
+        $.confirm({
+            title: 'Complete Event',
+            content: 'Are you sure you want to mark this event as completed?',
+            type: 'blue',
+            typeAnimated: true,
+            buttons: {
+                yes: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function() {
+                        markEventAsComplete(eventId);
+                    }
+                },
+                no: {
+                    text: 'No',
+                    btnClass: 'btn-secondary'
+                }
+            }
+        });
+    }
+  }
+
+  // Function to handle the completion AJAX request
+  function markEventAsComplete(eventId) {
+    $.ajax({
+        url: base_url + "/event/complete/" + eventId, // You'll provide this route
+        type: "PUT",
+        dataType: "json",
+        success: function(response) {
+            if (response.success) {
+                // Remove from global events array
+                globalEvents = globalEvents.filter(event => event.id !== parseInt(eventId));
+                
+                // Refresh the event cards
+                if(globalEvents.length > 0) {
+                    createEventCards(globalEvents);
+                } else {
+                    $('.upcomingEvents').html('<div class="text-center text-muted">No upcoming events</div>');
+                }
+                
+                customAlert('Success', 'Event marked as completed', 'green');
+            }
+        },
+        error: function(xhr) {
+            customAlert('Error', xhr.responseJSON?.message || 'Failed to complete event', 'red');
+        }
+    });
+  }
+
 
 
   function resetForm() {
