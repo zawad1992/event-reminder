@@ -18,6 +18,20 @@ $(function() {
       $("#external-events").addClass("d-none");
     }
   }
+  function upcoming_event_loader(status) {
+    $('.upcoming-events-loader').removeClass('d-flex').addClass('d-none');
+    $('.completed-events-loader').removeClass('d-flex').addClass('d-none');
+
+    $(".upcomingEvents").removeClass("d-none");
+    $(".completedEvents").removeClass("d-none");
+
+    if(status === 'show') {
+      $('.upcoming-events-loader').addClass('d-flex').removeClass('d-none');
+      $('.completed-events-loader').addClass('d-flex').removeClass('d-none');
+      $(".upcomingEvents").addClass("d-none");
+      $(".completedEvents").addClass("d-none");
+    }
+  }
 
   // Date picker initialization
   $('#startDatePicker').datetimepicker({
@@ -55,61 +69,6 @@ $(function() {
   $("#startDatePicker").on("change.datetimepicker", function (e) {
       $('#endDatePicker').datetimepicker('minDate', e.date);
   });
-
-  // Form validation
-  function validateEventForm() {
-      let isValid = true;
-      const requiredFields = {
-          'eventTitle': 'Event Title',
-          'eventType': 'Event Type',
-          'eventStart': 'Start Time',
-          'eventEnd': 'End Time'
-      };
-
-      const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} (AM|PM)$/;
-      const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-      // Reset previous validation states
-      $('.form-group').removeClass('has-error');
-      $('.error-message').remove();
-
-      Object.keys(requiredFields).forEach(fieldId => {
-          const field = $(`#${fieldId}`);
-          const value = field.val().trim();
-          
-          if (!value) {
-              isValid = false;
-              const formGroup = field.closest('.form-group');
-              formGroup.addClass('has-error');
-              
-              if (formGroup.find('.error-message').length === 0) {
-                  formGroup.append(`<div class="error-message text-danger mt-1"><small>${requiredFields[fieldId]} is required</small></div>`);
-              }
-              
-              field.css('border-color', '#dc3545');
-          } else if (fieldId === 'eventStart' || fieldId === 'eventEnd') {
-              const isAllDay = $('#eventAllDay').is(':checked');
-              const isValidFormat = isAllDay ? 
-                  dateOnlyRegex.test(value) : 
-                  dateTimeRegex.test(value);
-
-              if (!isValidFormat) {
-                  isValid = false;
-                  const formGroup = field.closest('.form-group');
-                  formGroup.addClass('has-error');
-                  const expectedFormat = isAllDay ? 
-                      'YYYY-MM-DD' : 
-                      'YYYY-MM-DD HH:MM AM/PM';
-                  formGroup.append(`<div class="error-message text-danger mt-1"><small>Invalid date format. Expected format: ${expectedFormat}</small></div>`);
-                  field.css('border-color', '#dc3545');
-              }
-          } else {
-              field.css('border-color', '');
-          }
-      });
-
-      return isValid;
-  }
 
   // Clear validation errors on input
   $('#eventTitle, #eventType, #eventStart, #eventEnd').on('input change', function() {
@@ -192,7 +151,10 @@ $(function() {
 
   function createEventCards(events) {
     const upcomingEventsContainer = $('.upcomingEvents');
+    const completedEventsContainer = $('.completedEvents');
+    
     upcomingEventsContainer.empty();
+    completedEventsContainer.empty();
     
     events.forEach(event => {
         const formattedStartDate = moment(event.start_date).format('MMM DD, YYYY hh:mm A');
@@ -205,12 +167,14 @@ $(function() {
                     <h5 class="card-title" style="font-weight: 500px;">${event.title}</h5>
                     <div class="card-tools">
                         <span class="badge" style="background-color: ${event.color}">#${event.id}</span>
-                        <a href="#" class="btn btn-tool complete-event" data-event-id="${event.id}" title="Mark as Complete">
-                            <i class="fas fa-check"></i>
-                        </a>
-                        <a href="#" class="btn btn-tool edit-event" data-event-id="${event.id}">
-                            <i class="fas fa-pen"></i>
-                        </a>
+                        ${!event.is_completed ? `
+                            <a href="#" class="btn btn-tool complete-event" data-event-id="${event.id}" title="Mark as Complete">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a href="#" class="btn btn-tool edit-event" data-event-id="${event.id}">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                        ` : ''}
                         <a href="#" class="btn btn-tool delete-event" data-event-id="${event.id}">
                             <i class="fas fa-times"></i>
                         </a>
@@ -229,8 +193,22 @@ $(function() {
                 </div>
             </div>
         `;
-        upcomingEventsContainer.prepend(cardHtml);
+
+        // Add to appropriate container based on completion status
+        if (event.is_completed) {
+            completedEventsContainer.prepend(cardHtml);
+        } else {
+            upcomingEventsContainer.prepend(cardHtml);
+        }
     });
+
+    // Handle empty states
+    if (upcomingEventsContainer.children().length === 0) {
+        upcomingEventsContainer.html('<div class="text-center text-muted">No upcoming events</div>');
+    }
+    if (completedEventsContainer.children().length === 0) {
+        completedEventsContainer.html('<div class="text-center text-muted">No completed events</div>');
+    }
   }
 
   // Add event handler for edit icon
@@ -262,20 +240,25 @@ $(function() {
   // Get events from server and initialize
   function loadEvents() {
     $.ajax({
-        url: base_url + "/get_events/",
-        type: "GET",
-        dataType: "json",
-        success: function(response) {
-          if (response.events && response.events.length > 0) {
-              globalEvents = response.events;
-              createEventCards(globalEvents);
-          } else {
-            $('.upcomingEvents').html('<div class="text-center text-muted">No upcoming events</div>');
-          }
-        },
-        error: function(xhr) {
-            // customAlert('Error', 'Failed to load events', 'red');
-            $('.upcomingEvents').html('<div class="text-center text-danger">Error loading events</div>');
+      url: base_url + "/get_events/",
+      type: "GET",
+      dataType: "json",
+      beforeSend: () => upcoming_event_loader('show'),
+      success: function(response) {
+        upcoming_event_loader('hide');
+        if (response.events && response.events.length > 0) {
+            globalEvents = response.events;
+            createEventCards(globalEvents);
+        } else {
+          $('.upcomingEvents').html('<div class="text-center text-muted">No upcoming events</div>');
+          $('.completedEvents').html('<div class="text-center text-muted">No completed events</div>');
+        }
+      },
+      error: function(xhr) {
+        upcoming_event_loader('hide');
+        $('.upcomingEvents, .completedEvents').html(
+          '<div class="text-center text-danger">Error loading events</div>'
+        );
         }
     });
   }
@@ -559,21 +542,22 @@ $(function() {
   // Function to handle the completion AJAX request
   function markEventAsComplete(eventId) {
     $.ajax({
-        url: base_url + "/event/complete/" + eventId, // You'll provide this route
+        url: base_url + "/event/complete/" + eventId,
         type: "PUT",
         dataType: "json",
         success: function(response) {
             if (response.success) {
-                // Remove from global events array
-                globalEvents = globalEvents.filter(event => event.id !== parseInt(eventId));
-                
-                // Refresh the event cards
-                if(globalEvents.length > 0) {
-                    createEventCards(globalEvents);
-                } else {
-                    $('.upcomingEvents').html('<div class="text-center text-muted">No upcoming events</div>');
+                // Update the event in global events array
+                const eventIndex = globalEvents.findIndex(event => event.id === parseInt(eventId));
+                if (eventIndex !== -1) {
+                    globalEvents[eventIndex] = {
+                        ...globalEvents[eventIndex],
+                        is_completed: 1
+                    };
                 }
                 
+                // Refresh all cards
+                createEventCards(globalEvents);
                 customAlert('Success', 'Event marked as completed', 'green');
             }
         },
