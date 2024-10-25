@@ -45,7 +45,7 @@
       </div>
     </form>
 
-    <div class="social-auth-links text-center mt-2 mb-3">
+    {{-- <div class="social-auth-links text-center mt-2 mb-3">
       <a href="#" class="btn btn-block btn-danger">
         <i class="fab fa-google mr-2"></i> Sign in using Google
       </a>
@@ -53,7 +53,7 @@
 
     <p class="mb-1">
       <a href="{{ route('password.request') }}">I forgot my password</a>
-    </p>
+    </p> --}}
     <p class="mb-0">
       <a href="{{ route('register') }}" class="text-center">Register a new account</a>
     </p>
