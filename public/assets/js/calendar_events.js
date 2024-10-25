@@ -393,7 +393,6 @@ $(function() {
     const dateTimeRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} (AM|PM)$/;  // 2024-10-23 11:46 PM
     const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;  // 2024-10-23
 
-
     // Reset previous validation states
     $('.form-group').removeClass('has-error');
     $('.error-message').remove();
@@ -401,40 +400,61 @@ $(function() {
     // Check each required field
     Object.keys(requiredFields).forEach(fieldId => {
         const field = $(`#${fieldId}`);
-        const value = field.val().trim();
+        if (!field.length) {
+            console.error(`Field with id '${fieldId}' not found`);
+            isValid = false;
+            return;
+        }
+
+        // Safely get the value and handle null/undefined cases
+        const value = field.val();
+        const trimmedValue = (value || '').trim();
         
-        if (!value) {
+        if (!trimmedValue) {
             isValid = false;
             const formGroup = field.closest('.form-group');
             formGroup.addClass('has-error');
             
             // Add error message
             if (formGroup.find('.error-message').length === 0) {
-              formGroup.append(`<div class="error-message text-danger mt-1"><small>${requiredFields[fieldId]} is required</small></div>`);
+                formGroup.append(`<div class="error-message text-danger mt-1"><small>${requiredFields[fieldId]} is required</small></div>`);
             }
             
             // Add red border to input
             field.css('border-color', '#dc3545');
         } else if (fieldId === 'eventStart' || fieldId === 'eventEnd') {
-          const isAllDay = $('#eventAllDay').is(':checked');
-          const isValidFormat = isAllDay ? 
-              dateOnlyRegex.test(value) : 
-              dateTimeRegex.test(value);
+            const isAllDay = $('#eventAllDay').is(':checked');
+            const isValidFormat = isAllDay ? 
+                dateOnlyRegex.test(trimmedValue) : 
+                dateTimeRegex.test(trimmedValue);
 
-          if (!isValidFormat) {
-              isValid = false;
-              formGroup.addClass('has-error');
-              const expectedFormat = isAllDay ? 
-                  'YYYY-MM-DD' : 
-                  'YYYY-MM-DD HH:MM AM/PM';
-              formGroup.append(`<div class="error-message text-danger mt-1"><small>Invalid date format. Expected format: ${expectedFormat}</small></div>`);
-              field.css('border-color', '#dc3545');
-          }
-      } else {
+            if (!isValidFormat) {
+                isValid = false;
+                const formGroup = field.closest('.form-group');
+                formGroup.addClass('has-error');
+                const expectedFormat = isAllDay ? 
+                    'YYYY-MM-DD' : 
+                    'YYYY-MM-DD HH:MM AM/PM';
+                formGroup.append(`<div class="error-message text-danger mt-1"><small>Invalid date format. Expected format: ${expectedFormat}</small></div>`);
+                field.css('border-color', '#dc3545');
+            }
+        } else {
             // Reset styling if field is valid
             field.css('border-color', '');
         }
     });
+
+    // Additional validation for event type select
+    const eventTypeSelect = $('#eventType');
+    if (!eventTypeSelect.val()) {
+        isValid = false;
+        const formGroup = eventTypeSelect.closest('.form-group');
+        formGroup.addClass('has-error');
+        if (formGroup.find('.error-message').length === 0) {
+            formGroup.append('<div class="error-message text-danger mt-1"><small>Please select an event type</small></div>');
+        }
+        eventTypeSelect.css('border-color', '#dc3545');
+    }
 
     return isValid;
   }
