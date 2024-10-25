@@ -36,19 +36,69 @@ $('.datePicker').datepicker({dateFormat: 'dd-mm-yy', changeYear: true, changeMon
 
 
 // Function to determine if text should be white or black based on background color
-function getContrastColor(hexcolor) {
-    // Remove the # if present
-    hexcolor = hexcolor.replace('#', '');
-    
-    // Convert to RGB
-    const r = parseInt(hexcolor.substr(0, 2), 16);
-    const g = parseInt(hexcolor.substr(2, 2), 16);
-    const b = parseInt(hexcolor.substr(4, 2), 16);
-    
-    // Calculate brightness (using relative luminance)
-    // Using YIQ formula: https://24ways.org/2010/calculating-color-contrast/
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    
-    // Return black or white based on brightness
-    return (yiq >= 128) ? 'black' : 'white';
+function getContrastColor(color) {
+  // Check if color is null, undefined or empty
+  if (!color) {
+      console.warn('Invalid color value provided:', color);
+      return 'black'; // Default return value
+  }
+
+  // Function to convert RGB to array of values
+  function getRGBFromString(rgb) {
+      const matches = rgb.match(/\d+/g);
+      return matches ? matches.map(Number) : [0, 0, 0];
+  }
+
+  // Function to convert Hex to RGB array
+  function hexToRGB(hex) {
+      hex = hex.replace('#', '');
+      
+      // Handle shorthand hex (#fff)
+      if (hex.length === 3) {
+          hex = hex.split('').map(char => char + char).join('');
+      }
+      
+      // Verify if hex is valid
+      if (!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+          console.warn('Invalid hex color:', hex);
+          return [0, 0, 0];
+      }
+      
+      return [
+          parseInt(hex.substr(0, 2), 16),
+          parseInt(hex.substr(2, 2), 16),
+          parseInt(hex.substr(4, 2), 16)
+      ];
+  }
+
+  try {
+      let r, g, b;
+
+      // Check if color is RGB/RGBA
+      if (color.startsWith('rgb')) {
+          [r, g, b] = getRGBFromString(color);
+      }
+      // Check if color is Hex
+      else if (color.startsWith('#')) {
+          [r, g, b] = hexToRGB(color);
+      }
+      // Handle named colors by creating a temporary element
+      else {
+          const tempElement = document.createElement('div');
+          tempElement.style.color = color;
+          document.body.appendChild(tempElement);
+          const computedColor = window.getComputedStyle(tempElement).color;
+          document.body.removeChild(tempElement);
+          [r, g, b] = getRGBFromString(computedColor);
+      }
+
+      // Calculate relative luminance using YIQ formula
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      
+      // Return black or white based on luminance threshold
+      return (yiq >= 128) ? 'black' : 'white';
+  } catch (error) {
+      console.warn('Error processing color:', color, error);
+      return 'black'; // Default return value
+  }
 }
