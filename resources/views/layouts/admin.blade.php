@@ -52,9 +52,7 @@
 </script>
 @stack('scripts')
 
-<!-- Add these scripts before closing body tag -->
-<script src="{{ asset('assets/js/offline/indexedDB.js') }}"></script>
-<script src="{{ asset('assets/js/offline/offline-manager.js') }}"></script>
+
     
 <script>
     // Wait for DOM to be ready
@@ -79,5 +77,8 @@
         });
     }
 </script>
+<!-- Add these scripts before closing body tag -->
+<script src="{{ asset('assets/js/offline/indexedDB.js') }}"></script>
+<script src="{{ asset('assets/js/offline/offline-manager.js') }}"></script>
 </body>
 </html>
