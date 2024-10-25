@@ -30,6 +30,7 @@ return new class extends Migration
             $table->integer('recurring_count')->nullable();
             $table->boolean('is_completed')->default(false)->nullable()->comment('0=No, 1=Yes');
             $table->timestamps();
+            $table->softDeletes();
 
             // Foreign key constraint
             $table->foreign('event_type_id')->references('id')->on('event_types')->onDelete('cascade');

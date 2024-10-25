@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable(); // Nullable for system-defined types
             $table->string('color')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             // Foreign key constraint
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
