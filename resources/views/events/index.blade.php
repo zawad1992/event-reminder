@@ -142,20 +142,14 @@
       </div>
 
       <div class="card card-row card-success">
-        <div class="card-header"> <h3 class="card-title"> Completed Event </h3> </div>
-        <div class="card-body">
-          <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h5 class="card-title">Create repo</h5>
-              <div class="card-tools">
-                <a href="#" class="btn btn-tool btn-link">#1</a>
-                <a href="#" class="btn btn-tool">
-                  <i class="fas fa-pen"></i>
-                </a>
-              </div>
-            </div>
-          </div>
+        <div class="card-header">
+          <h3 class="card-title">
+            Completed Events
+          </h3>
         </div>
+        <div class="card-body completedEvents">
+         
+        </div>       
       </div>
 
     </div>
