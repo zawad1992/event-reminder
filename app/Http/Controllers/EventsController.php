@@ -2,328 +2,176 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\EventRequest;
 use App\Http\Requests\EventUploadRequest;
-
-
 use App\Models\Event;
 use App\Models\EventType;
 use App\Services\ReminderIdGenerator;
-
-use Illuminate\Support\Facades\DB;
-use League\Csv\Reader;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use League\Csv\Reader;
 
 class EventsController extends Controller
 {
-    private $reminderIdGenerator;
+    private ReminderIdGenerator $reminderIdGenerator;
     
     public function __construct(ReminderIdGenerator $reminderIdGenerator)
     {
         $this->reminderIdGenerator = $reminderIdGenerator;
     }
 
-    public function index()
+    public function index(): View
     {
-        $title = 'Events';
-        $title_for_layout = 'Events List';
-        return view('events.index', compact('title', 'title_for_layout'));
+        return view('events.index', [
+            'title' => 'Events',
+            'title_for_layout' => 'Events List'
+        ]);
     }
     
-    public function calendar()
+    public function calendar(): View
     {
-        $title = 'Calendar';
-        $title_for_layout = 'Calendar';
-        return view('events.calendar', compact('title', 'title_for_layout'));
+        return view('events.calendar', [
+            'title' => 'Calendar',
+            'title_for_layout' => 'Calendar'
+        ]);
     }
 
-    public function get_events()
+    public function getEvents(): JsonResponse
     {
-        if (Auth::check()) {
-            $user_id = Auth::user()->id;
-        }
+        $userId = Auth::id();
         
-        $events['events'] = Event::where('user_id', $user_id)
-            ->select([ 'id', 'offline_id', 'reminder_id', 'user_id', 'title', 'description', 'event_type_id',
-                DB::raw('CASE 
-                    WHEN is_all_day = 0 THEN CONCAT(start_date, " ", start_time)
+        $events = Event::where('user_id', $userId)
+            ->select([
+                'id', 'offline_id', 'reminder_id', 'user_id', 'title', 
+                'description', 'event_type_id',
+                DB::raw("CASE 
+                    WHEN is_all_day = 0 THEN CONCAT(start_date, ' ', start_time)
                     ELSE start_date
-                END as start_date'),
-                DB::raw('CASE 
-                    WHEN is_all_day = 0 THEN CONCAT(end_date, " ", end_time)
+                END as start_date"),
+                DB::raw("CASE 
+                    WHEN is_all_day = 0 THEN CONCAT(end_date, ' ', end_time)
                     ELSE end_date
-                END as end_date'),
-                'color', 'is_all_day', 'is_reminder', 'is_recurring', 'recurring_type', 'recurring_count', 'external_participants', 'is_completed', 'sync_status', 'last_synced_at', 'created_at', 'updated_at', 'deleted_at'
+                END as end_date"),
+                'color', 'is_all_day', 'is_reminder', 'is_recurring', 
+                'recurring_type', 'recurring_count', 'external_participants',
+                'is_completed', 'sync_status', 'last_synced_at', 
+                'created_at', 'updated_at', 'deleted_at'
             ])
             ->get();
 
-        return response()->json($events);
+        return response()->json(['events' => $events]);
     }
 
-
-    public function event_add()
+    public function eventAdd(): View
     {
-        $title = 'Add Event';
-        $title_for_layout = 'Add Event';
-        return view('events.add', compact('title', 'title_for_layout'));
+        return view('events.add', [
+            'title' => 'Add Event',
+            'title_for_layout' => 'Add Event'
+        ]);
     }    
 
-    public function event_submit(EventRequest $request)
+    public function eventSubmit(EventRequest $request): JsonResponse
     {
         try {
-            // Extract start_date and end_date from the request
-            $start = $request->start_date;
-            $end = $request->end_date;
-
-            // Use Carbon to correctly extract date and time parts
-            $startDateTime = Carbon::parse($start);
-            $endDateTime = Carbon::parse($end);
-
-            // Format the start and end date/time as required
-            $start_date = $startDateTime->format('Y-m-d');
-            $start_time = $startDateTime->format('H:i:0');
-            $end_date = $endDateTime->format('Y-m-d');
-            $end_time = $endDateTime->format('H:i:0');
-            
-            $user_id = Auth::user()->id;             
-    
-            $reminderId = $this->reminderIdGenerator->generateReminderId(Auth::user());
-
-
-            $event = new Event();
-            $event->reminder_id = $reminderId;
-            $event->title = $request->title;
-            $event->description = $request->description;
-            $event->external_participants = $request->external_participants;
-            $event->event_type_id = $request->event_type_id;
-            $event->start_date = $start_date;
-            $event->end_date = $end_date;
-            $event->start_time = $start_time;
-            $event->end_time = $end_time;
-            $event->color = $request->color;
-            $event->is_all_day = $request->is_all_day;
-            $event->is_reminder = $request->is_reminder;
-            $event->is_recurring = $request->is_recurring;
-            $event->recurring_type = $request->recurring_type;
-            $event->recurring_count = $request->recurring_count;
-            $event->user_id = $user_id;
-            
-            $event->save();
-            
-            // Hide the user_id field from the JSON response
+            $event = $this->createEventFromRequest($request);
             $event->makeHidden('user_id');
 
-            $data['success'] = true;
-            $data['event'] = $event;
-
-            return response()->json($data);
+            return response()->json([
+                'success' => true,
+                'event' => $event
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to insert event '.$e
+                'message' => 'Failed to insert event: ' . $e->getMessage()
             ], 500);
         }    
     }
 
-    public function event_upload(EventUploadRequest $request)
+    public function eventUpload(EventUploadRequest $request)
     {
         try {
-            $user_id = Auth::user()->id;
-
-            $eventTypes = EventType::select('id', 'color')
-                ->where(function($query) use ($user_id){
-                    $query->where('is_user_defined', 0);
-                    if($user_id){
-                        $query->orWhere('user_id', $user_id);
-                    }
-                })->pluck('color','id')->toArray();
+            $userId = Auth::id();
+            $eventTypes = $this->getEventTypes($userId);
 
             DB::beginTransaction();
             
-            $file = $request->file('event_file');
+            $importResult = $this->processEventUpload($request->file('event_file'), $eventTypes);
             
-            $csv = Reader::createFromPath($file->getPathname(), 'r');
-            $csv->setHeaderOffset(0);
-            
-            $records = $csv->getRecords();
-            $imported = 0;
-            $errors = [];           
-            
-            foreach ($records as $offset => $record) {
-                try {
-                    // Validate required fields
-                    if (empty($record['title']) || empty($record['event_type_id']) || 
-                        empty($record['start_date']) || empty($record['end_date'])) {
-                        $errors[] = "Row " . ($offset + 2) . ": Missing required fields";
-                        continue;
-                    }
-
-                    // Parse dates
-                    try {
-                        $startDateTime = Carbon::parse($record['start_date']);
-                        $endDateTime = Carbon::parse($record['end_date']);
-                    } catch (\Exception $e) {
-                        $errors[] = "Row " . ($offset + 2) . ": Invalid date format";
-                        continue;
-                    }
-
-                    // Process external participants - clean and validate emails
-                    $externalParticipants = null;
-                    if (!empty($record['external_participants'])) {
-                        // Split emails and clean them
-                        $emails = array_map('trim', explode(',', $record['external_participants']));
-                        $validEmails = [];
-                        
-                        foreach ($emails as $email) {
-                            if (!empty($email)) {  // Skip empty emails
-                                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                                    $errors[] = "Row " . ($offset + 2) . ": Invalid email format: {$email}";
-                                    continue 2;
-                                }
-                                $validEmails[] = $email;
-                            }
-                        }
-                        
-                        // Join valid emails back into a string
-                        $externalParticipants = !empty($validEmails) ? implode(', ', $validEmails) : null;
-                    }
-
-                    $reminderId = app(ReminderIdGenerator::class)->generateReminderId(Auth::user());
-
-                    // Create new event
-                    $event = new Event();
-                    $event->reminder_id = $reminderId;
-                    $event->title = $record['title'];
-                    $event->description = $record['description'] ?? null;
-                    $event->event_type_id = $record['event_type_id'];
-                    $event->start_date = $startDateTime->format('Y-m-d');
-                    $event->start_time = $startDateTime->format('H:i:s');
-                    $event->end_date = $endDateTime->format('Y-m-d');
-                    $event->end_time = $endDateTime->format('H:i:s');
-                    $event->color = $eventTypes[$record['event_type_id']] ?? '#007bff';
-                    $event->is_all_day = $record['is_all_day'] ?? 0;
-                    $event->is_reminder = $record['is_reminder'] ?? 0;
-                    $event->is_recurring = $record['is_recurring'] ?? 0;
-                    $event->recurring_type = $record['recurring_type'] ?? null;
-                    $event->recurring_count = $record['recurring_count'] ?? null;
-                    $event->external_participants = $externalParticipants;  // Use processed emails
-                    $event->user_id = $user_id;
-                    
-                    $event->save();
-                    $imported++;
-
-                } catch (\Exception $e) {
-                    $errors[] = "Row " . ($offset + 2) . ": " . $e->getMessage();
-                }
-            }
-
             DB::commit();
 
-            if ($imported > 0) {
-                session()->flash('success', "{$imported} events were imported successfully.");
+            if ($importResult['imported'] > 0) {
+                session()->flash('success', "{$importResult['imported']} events were imported successfully.");
             }
             
-            if (!empty($errors)) {
-                session()->flash('warning', implode("\n", $errors));
+            if (!empty($importResult['errors'])) {
+                session()->flash('warning', implode("\n", $importResult['errors']));
             }
 
             return redirect()->back();
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('CSV Upload Error: ' . $e->getMessage());  // Add logging
+            Log::error('CSV Upload Error: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Failed to process CSV file: ' . $e->getMessage());
         }
     }
 
-    public function event_update(EventRequest $request, $id)
+    public function eventUpdate(EventRequest $request, $id): JsonResponse
     {
         try {
-            // Extract start_date and end_date from the request
-            $start = $request->start_date;
-            $end = $request->end_date;
-
-            // Use Carbon to correctly extract date and time parts
-            $startDateTime = Carbon::parse($start);
-            $endDateTime = Carbon::parse($end);
-
-            // Format the start and end date/time as required
-            $start_date = $startDateTime->format('Y-m-d');
-            $start_time = $startDateTime->format('H:i:0');
-            $end_date = $endDateTime->format('Y-m-d');
-            $end_time = $endDateTime->format('H:i:0');
-
-            
-            $user_id = Auth::user()->id;
-
-            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
-            $event->title = $request->title;
-            $event->description = $request->description;
-            $event->external_participants = $request->external_participants;
-            $event->event_type_id = $request->event_type_id;
-            $event->start_date = $start_date;
-            $event->end_date = $end_date;
-            $event->start_time = $start_time;
-            $event->end_time = $end_time;
-            $event->color = $request->color;
-            $event->is_all_day = $request->is_all_day;
-            $event->is_reminder = $request->is_reminder;
-            $event->is_recurring = $request->is_recurring;
-            $event->recurring_type = $request->recurring_type;
-            $event->recurring_count = $request->recurring_count;
-            $event->save();
-
-            // Hide the user_id field from the JSON response
+            $event = $this->updateEventFromRequest($request, $id);
             $event->makeHidden('user_id');
 
-            $data['success'] = true;
-            $data['event'] = $event;
-            return response()->json($data);
+            return response()->json([
+                'success' => true,
+                'event' => $event
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update event '.$e->getMessage()
+                'message' => 'Failed to update event: ' . $e->getMessage()
             ], 500);
         }
     }
-    
 
-    public function event_complete($id)
+    public function eventComplete($id): JsonResponse
     {
         try {
-            
-            $user_id = Auth::user()->id;
-
-            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
+            $event = Event::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
+                
             $event->is_completed = 1;
             $event->save();
-
-            // Hide the user_id field from the JSON response
             $event->makeHidden('user_id');
 
-            $data['success'] = true;
-            $data['event'] = $event;
-            return response()->json($data);
+            return response()->json([
+                'success' => true,
+                'event' => $event
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update event '.$e->getMessage()
+                'message' => 'Failed to update event: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    public function event_delete($id)
+    public function eventDelete($id): JsonResponse
     {
         try {
+            Event::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail()
+                ->delete();
 
-            
-            $user_id = Auth::user()->id;
-
-            $event = Event::where('id', $id)->where('user_id', $user_id)->firstOrFail();
-            $event->delete();
             return response()->json([
                 'success' => true,
                 'message' => 'Event deleted successfully'
@@ -336,59 +184,47 @@ class EventsController extends Controller
         }
     }
 
-    public function types()
+    public function types(): JsonResponse
     {
-        
-        if(Auth::check()){
-            $user_id = Auth::user()->id;
-        }
+        $userId = Auth::id();
     
-        $events['event_types'] = EventType::select('id', 'title', 'color', 'is_user_defined')->where(function($query) use ($user_id){
-            $query->where('is_user_defined', 0);
-            if($user_id){
-                $query->orWhere('user_id', $user_id);
-            }
-        })->get();
+        $eventTypes = EventType::select('id', 'title', 'color', 'is_user_defined')
+            ->where(function($query) use ($userId) {
+                $query->where('is_user_defined', 0);
+                if ($userId) {
+                    $query->orWhere('user_id', $userId);
+                }
+            })
+            ->get();
 
-        return response()->json($events);
-        
+        return response()->json(['event_types' => $eventTypes]);
     }
 
-    public function type_add(Request $request)
+    public function typeAdd(Request $request): JsonResponse
     {
-        $title = $request->title;
-        $color = $request->color;
-        $is_user_defined = $request->is_user_defined;
-
-        
-        if(Auth::check()){
-            $user_id = Auth::user()->id;
-        }
-        if($title == null || $color == null){
+        if (!$request->title || !$request->color) {
             return response()->json(['error' => 'Title and Color are required.']);
         }
 
-        $event_type = new EventType();
-        $event_type->title = $title;
-        $event_type->color = $color;
-        $event_type->user_id = $user_id;
-        $event_type->is_user_defined = $is_user_defined;
-        $event_type->save();
-        $event['event_type'] = $event_type;
-        return response()->json($event);
+        $eventType = EventType::create([
+            'title' => $request->title,
+            'color' => $request->color,
+            'user_id' => Auth::id(),
+            'is_user_defined' => $request->is_user_defined
+        ]);
+
+        return response()->json(['event_type' => $eventType]);
     }
 
-    public function type_update(Request $request, $id)
+    public function typeUpdate(Request $request, $id): JsonResponse
     {
         try {
-            $eventType = EventType::findOrFail($id);
-            
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'color' => 'required|string'
             ]);
 
-            $eventType->update($validated);
+            EventType::findOrFail($id)->update($validated);
 
             return response()->json([
                 'success' => true,
@@ -402,11 +238,10 @@ class EventsController extends Controller
         }
     }
 
-    public function type_delete($id)
+    public function typeDelete($id): JsonResponse
     {
         try {
-            $eventType = EventType::findOrFail($id);
-            $eventType->delete();
+            EventType::findOrFail($id)->delete();
 
             return response()->json([
                 'success' => true,
@@ -423,95 +258,258 @@ class EventsController extends Controller
     public function downloadSampleCsv()
     {
         try {
-            // Get all the event types
-            $user_id = Auth::user()->id;
-        
-            $eventTypes = EventType::select('id', 'title', 'color', 'is_user_defined')
-                ->where(function($query) use ($user_id){
-                    $query->where('is_user_defined', 0);
-                    if($user_id){
-                        $query->orWhere('user_id', $user_id);
-                    }
-                })->get()->toArray();
-
-            // Create the sample events content with external_participants at the end
-            $sampleHeaders = [
-                'title', 
-                'description', 
-                'event_type_id', 
-                'start_date', 
-                'end_date', 
-                'is_all_day', 
-                'is_reminder', 
-                'is_recurring', 
-                'recurring_type', 
-                'recurring_count',
-                'external_participants'  // Moved to last column
-            ];
-
-            $sampleData = [
-                [
-                    'Daily Meeting',
-                    'Daily standup meeting',
-                    1,
-                    '2024-10-25 09:00:00',
-                    '2024-10-25 09:30:00',
-                    0,
-                    1,
-                    1,
-                    '1',
-                    5,
-                    'john@example.com, jane@example.com'  // Moved to last column
-                ],
-                [
-                    'Weekly Review',
-                    'Team weekly status review',
-                    2,
-                    '2024-10-28 14:00:00',
-                    '2024-10-28 15:00:00',
-                    0,
-                    1,
-                    1,
-                    '2',
-                    4,
-                    'manager@example.com'  // Moved to last column
-                ],
-                [
-                    'Monthly Report',
-                    'Monthly progress report meeting',
-                    3,
-                    '2024-11-01 10:00:00',
-                    '2024-11-01 11:00:00',
-                    0,
-                    1,
-                    1,
-                    '3',
-                    12,
-                    ''  // Empty external participants in last column
-                ]
-            ];
-
-            // Rest of the function remains the same...
-            $eventsContent = $this->generateCsvContent([$sampleHeaders, ...$sampleData]);
+            $eventTypes = $this->getFullEventTypes(Auth::id());
+            $eventsContent = $this->generateCsvContent($this->getSampleEventsData());
             $guidelinesContent = $this->generateGuidelinesContent($eventTypes);
 
-            if (class_exists('ZipArchive') && $this->isZipWorkable()) {
-                return $this->generateZipDownload($eventsContent, $guidelinesContent);
-            }
-
-            return $this->generateSingleCsvDownload($eventsContent, $guidelinesContent);
+            return class_exists('ZipArchive') && $this->isZipWorkable()
+                ? $this->generateZipDownload($eventsContent, $guidelinesContent)
+                : $this->generateSingleCsvDownload($eventsContent, $guidelinesContent);
 
         } catch (\Exception $e) {
-            \Log::error('Error generating sample CSV: ' . $e->getMessage());
+            Log::error('Error generating sample CSV: ' . $e->getMessage());
             return response()->json([
                 'error' => 'Unable to generate sample file. Please contact support.'
             ], 500);
         }
     }
 
-    /**
-     * Check if ZIP functionality is working
-     */
+    private function createEventFromRequest(EventRequest $request): Event
+    {
+        $dates = $this->parseDatesFromRequest($request);
+        
+        $event = new Event();
+        $this->setEventAttributes($event, $request, $dates);
+        $event->reminder_id = $this->reminderIdGenerator->generateReminderId(Auth::user());
+        $event->user_id = Auth::id();
+        $event->save();
+        
+        return $event;
+    }
+
+    private function updateEventFromRequest(EventRequest $request, $id): Event
+    {
+        $dates = $this->parseDatesFromRequest($request);
+        
+        $event = Event::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+            
+        $this->setEventAttributes($event, $request, $dates);
+        $event->save();
+        
+        return $event;
+    }
+
+    private function setEventAttributes(Event $event, EventRequest $request, array $dates): void
+    {
+        $event->title = $request->title;
+        $event->description = $request->description;
+        $event->external_participants = $request->external_participants;
+        $event->event_type_id = $request->event_type_id;
+        $event->start_date = $dates['start_date'];
+        $event->end_date = $dates['end_date'];
+        $event->start_time = $dates['start_time'];
+        $event->end_time = $dates['end_time'];
+        $event->color = $request->color;
+        $event->is_all_day = $request->is_all_day;
+        $event->is_reminder = $request->is_reminder;
+        $event->is_recurring = $request->is_recurring;
+        $event->recurring_type = $request->recurring_type;
+        $event->recurring_count = $request->recurring_count;
+    }
+
+    private function parseDatesFromRequest(EventRequest $request): array
+    {
+        $startDateTime = Carbon::parse($request->start_date);
+        $endDateTime = Carbon::parse($request->end_date);
+
+        return [
+            'start_date' => $startDateTime->format('Y-m-d'),
+            'start_time' => $startDateTime->format('H:i:0'),
+            'end_date' => $endDateTime->format('Y-m-d'),
+            'end_time' => $endDateTime->format('H:i:0')
+        ];
+    }
+
+    private function getEventTypes($userId): array
+    {
+        return EventType::select('id', 'color')
+            ->where(function($query) use ($userId) {
+                $query->where('is_user_defined', 0);
+                if ($userId) {
+                    $query->orWhere('user_id', $userId);
+                }
+            })
+            ->pluck('color', 'id')
+            ->toArray();
+    }
+
+    private function getFullEventTypes($userId): array
+    {
+        return EventType::select('id', 'title', 'color', 'is_user_defined')
+            ->where(function($query) use ($userId){
+                $query->where('is_user_defined', 0);
+                if($userId){
+                    $query->orWhere('user_id', $userId);
+                }
+            })
+            ->get()
+            ->toArray();
+    }
+
+    private function processEventUpload($file, array $eventTypes): array
+    {
+        $csv = Reader::createFromPath($file->getPathname(), 'r');
+        $csv->setHeaderOffset(0);
+        
+        $imported = 0;
+        $errors = [];
+        
+        foreach ($csv->getRecords() as $offset => $record) {
+            try {
+                if ($this->validateAndProcessRecord($record, $offset, $eventTypes)) {
+                    $imported++;
+                } else {
+                    $errors[] = "Row " . ($offset + 2) . ": Invalid record";
+                }
+            } catch (\Exception $e) {
+                $errors[] = "Row " . ($offset + 2) . ": " . $e->getMessage();
+            }
+        }
+
+        return [
+            'imported' => $imported,
+            'errors' => $errors
+        ];
+    }
+
+    private function validateAndProcessRecord(array $record, int $offset, array $eventTypes): bool
+    {
+        if (!$this->validateRequiredFields($record)) {
+            throw new \Exception("Missing required fields");
+        }
+
+        $startDateTime = Carbon::parse($record['start_date']);
+        $endDateTime = Carbon::parse($record['end_date']);
+        
+        $externalParticipants = $this->processExternalParticipants($record['external_participants'] ?? '', $offset);
+        
+        $event = new Event([
+            'reminder_id' => $this->reminderIdGenerator->generateReminderId(Auth::user()),
+            'title' => $record['title'],
+            'description' => $record['description'] ?? null,
+            'event_type_id' => $record['event_type_id'],
+            'start_date' => $startDateTime->format('Y-m-d'),
+            'start_time' => $startDateTime->format('H:i:s'),
+            'end_date' => $endDateTime->format('Y-m-d'),
+            'end_time' => $endDateTime->format('H:i:s'),
+            'color' => $eventTypes[$record['event_type_id']] ?? '#007bff',
+            'is_all_day' => $record['is_all_day'] ?? 0,
+            'is_reminder' => $record['is_reminder'] ?? 0,
+            'is_recurring' => $record['is_recurring'] ?? 0,
+            'recurring_type' => $record['recurring_type'] ?? null,
+            'recurring_count' => $record['recurring_count'] ?? null,
+            'external_participants' => $externalParticipants,
+            'user_id' => Auth::id()
+        ]);
+
+        return $event->save();
+    }
+
+    private function validateRequiredFields(array $record): bool
+    {
+        return !empty($record['title']) 
+            && !empty($record['event_type_id'])
+            && !empty($record['start_date'])
+            && !empty($record['end_date']);
+    }
+
+    private function processExternalParticipants(?string $participants, int $offset): ?string
+    {
+        if (empty($participants)) {
+            return null;
+        }
+
+        $emails = array_map('trim', explode(',', $participants));
+        $validEmails = array_filter($emails, function($email) use ($offset) {
+            if (empty($email)) {
+                return false;
+            }
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new \Exception("Invalid email format: {$email}");
+            }
+            return true;
+        });
+
+        return !empty($validEmails) ? implode(', ', $validEmails) : null;
+    }
+
+    private function getSampleEventsData(): array
+    {
+        return [
+                [ 'title', 'description', 'event_type_id', 'start_date', 'end_date', 'is_all_day', 'is_reminder', 'is_recurring', 'recurring_type', 'recurring_count', 'external_participants' ],
+                [ 'Daily Meeting', 'Daily standup meeting', 1, '2024-10-25 09:00:00', '2024-10-25 09:30:00', 0, 1, 1, '1', 5, 'john@example.com, jane@example.com' ],
+                [ 'Weekly Review', 'Team weekly status review', 2, '2024-10-28 14:00:00', '2024-10-28 15:00:00', 0, 1, 1, '2', 4, 'manager@example.com' ],
+                [ 'Monthly Report', 'Monthly progress report meeting', 3, '2024-11-01 10:00:00', '2024-11-01 11:00:00', 0, 1, 1, '3', 12, '' ]
+            ];
+    }
+
+    private function generateGuidelinesContent(array $eventTypes): string
+    {
+        $guidelines = $this->buildGuidelinesArray($eventTypes);
+        return $this->generateCsvContent($guidelines);
+    }
+
+    private function buildGuidelinesArray(array $eventTypes): array
+    {
+        $guidelines = [];
+        
+        // Event Types Section
+        $guidelines[] = ['Available Event Types'];
+        $guidelines[] = ['ID', 'Title'];
+        foreach ($eventTypes as $type) {
+            $guidelines[] = [$type['id'], $type['title']];
+        }
+        $guidelines[] = [];
+        
+        // Recurring Types Section
+        $guidelines[] = ['Recurring Types'];
+        $guidelines[] = ['Value', 'Description'];
+        $guidelines[] = ['1', 'Daily'];
+        $guidelines[] = ['2', 'Weekly'];
+        $guidelines[] = ['3', 'Monthly'];
+        $guidelines[] = ['4', 'Yearly'];
+        $guidelines[] = [];
+        
+        // Boolean Fields Section
+        $guidelines[] = ['Boolean Fields'];
+        $guidelines[] = ['Field', 'Values', 'Description'];
+        $guidelines[] = ['is_all_day', '0 or 1', '1 = All day event, 0 = Specific time'];
+        $guidelines[] = ['is_reminder', '0 or 1', '1 = Set reminder, 0 = No reminder'];
+        $guidelines[] = ['is_recurring', '0 or 1', '1 = Recurring event, 0 = One-time event'];
+        $guidelines[] = [];
+        
+        // Date Format Section
+        $guidelines[] = ['Date Format'];
+        $guidelines[] = ['Format', 'Example'];
+        $guidelines[] = ['YYYY-MM-DD HH:mm:ss', '2024-10-25 09:00:00'];
+
+        return $guidelines;
+    }
+
+    private function generateCsvContent(array $data): string
+    {
+        $output = fopen('php://temp', 'r+');
+        foreach ($data as $row) {
+            fputcsv($output, $row);
+        }
+        rewind($output);
+        $content = stream_get_contents($output);
+        fclose($output);
+        return $content;
+    }
+
     private function isZipWorkable(): bool
     {
         try {
@@ -539,70 +537,6 @@ class EventsController extends Controller
         }
     }
 
-    /**
-     * Generate CSV content from array
-     */
-    private function generateCsvContent(array $data): string
-    {
-        $output = fopen('php://temp', 'r+');
-        foreach ($data as $row) {
-            fputcsv($output, $row);
-        }
-        rewind($output);
-        $content = stream_get_contents($output);
-        fclose($output);
-        return $content;
-    }
-
-    /**
-     * Generate guidelines content
-     */
-    private function generateGuidelinesContent(array $eventTypes): string
-    {
-        $guidelines = [];
-        
-        // Event Types Section
-        $guidelines[] = ['Available Event Types'];
-        $guidelines[] = ['ID', 'Title'];
-        foreach ($eventTypes as $type) {
-            $guidelines[] = [$type['id'], $type['title']];
-        }
-        
-        // Separator
-        $guidelines[] = [];
-        
-        // Recurring Types Section
-        $guidelines[] = ['Recurring Types'];
-        $guidelines[] = ['Value', 'Description'];
-        $guidelines[] = ['1', 'Daily'];
-        $guidelines[] = ['2', 'Weekly'];
-        $guidelines[] = ['3', 'Monthly'];
-        $guidelines[] = ['4', 'Yearly'];
-        
-        // Separator
-        $guidelines[] = [];
-        
-        // Boolean Fields Section
-        $guidelines[] = ['Boolean Fields'];
-        $guidelines[] = ['Field', 'Values', 'Description'];
-        $guidelines[] = ['is_all_day', '0 or 1', '1 = All day event, 0 = Specific time'];
-        $guidelines[] = ['is_reminder', '0 or 1', '1 = Set reminder, 0 = No reminder'];
-        $guidelines[] = ['is_recurring', '0 or 1', '1 = Recurring event, 0 = One-time event'];
-        
-        // Separator
-        $guidelines[] = [];
-        
-        // Date Format Section
-        $guidelines[] = ['Date Format'];
-        $guidelines[] = ['Format', 'Example'];
-        $guidelines[] = ['YYYY-MM-DD HH:mm:ss', '2024-10-25 09:00:00'];
-
-        return $this->generateCsvContent($guidelines);
-    }
-
-    /**
-     * Generate ZIP download
-     */
     private function generateZipDownload(string $eventsContent, string $guidelinesContent)
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'events_');
@@ -627,9 +561,6 @@ class EventsController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
-    /**
-     * Generate single CSV download
-     */
     private function generateSingleCsvDownload(string $eventsContent, string $guidelinesContent)
     {
         $combinedContent = $eventsContent . "\n\nGUIDELINES\n" . $guidelinesContent;
