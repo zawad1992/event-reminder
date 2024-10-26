@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\EventRequest;
 use App\Http\Requests\EventUploadRequest;
 
 
@@ -55,7 +56,7 @@ class EventsController extends Controller
         return view('events.add', compact('title', 'title_for_layout'));
     }    
 
-    public function event_submit(Request $request)
+    public function event_submit(EventRequest $request)
     {
         try {
             // Extract start_date and end_date from the request
@@ -224,7 +225,7 @@ class EventsController extends Controller
         }
     }
 
-    public function event_update(Request $request, $id)
+    public function event_update(EventRequest $request, $id)
     {
         try {
             // Extract start_date and end_date from the request
