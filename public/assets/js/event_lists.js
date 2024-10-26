@@ -240,17 +240,6 @@ $(function() {
     }
   });
 
-  // Modify the switchToCreateMode and switchToEditMode functions
-  function switchToCreateMode() {
-    $('#createEvent').show();
-    $('#updateEvent, #deleteEvent, #cancelEdit').hide();
-  }
-
-  function switchToEditMode() {
-    $('#createEvent').hide();
-    $('#updateEvent, #deleteEvent, #cancelEdit').show();
-  }
-
   // Get events from server and initialize
   function loadEvents() {
     $.ajax({
@@ -653,7 +642,6 @@ $(function() {
     $('#createEvent').hide();
     $('#updateEvent, #deleteEvent, #cancelEdit').show();
   }
-
 
 
   // Initialize
