@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Log;
 
 use Illuminate\Support\Facades\Schedule;
 
+/* 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
+})->purpose('Display an inspiring quote')->hourly(); 
+*/
 
 
 // Every 30 minutes
