@@ -7,6 +7,33 @@ use App\Http\Controllers\PWAController;
 use Illuminate\Support\Facades\Auth;
 
 
+/* 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
+
+Route::get('/mail-test', function () {
+    try {
+        // You can replace this email with your test email address
+        $recipientEmail = 'zksikder440@gmail.com';
+        
+        Mail::to($recipientEmail)->send(new TestMail());
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Test email has been sent successfully'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to send email',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}); 
+*/
+
+
 // Public routes (accessible to everyone)
 Route::get('/', function () {
 
