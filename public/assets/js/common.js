@@ -182,3 +182,117 @@ function validateEventForm() {
 
   return isValid;
 }
+
+// Map backend field names to frontend field IDs
+const fieldMapping = {
+  'title': 'eventTitle',
+  'description': 'eventDescription',
+  'start_date': 'eventStart',
+  'start_time': 'eventStart',
+  'end_date': 'eventEnd',
+  'end_time': 'eventEnd',
+  'event_type_id': 'eventType',
+  'is_all_day': 'eventAllDay',
+  'is_reminder': 'eventReminder',
+  'is_recurring': 'eventRecurring',
+  'recurring_type': 'recurringType',
+  'recurring_count': 'recurringCount',
+  'external_participants': 'externalParticipants'
+};
+
+// Display validation errors function
+function displayValidationErrors(errors) {
+  // Clear previous validation states
+  $('.form-group').removeClass('has-error');
+  $('.error-message').remove();
+  $('input, select, textarea').css('border-color', '');
+
+  // Display each error
+  Object.entries(errors).forEach(([field, messages]) => {
+      const frontendFieldId = fieldMapping[field] || field;
+      let element = $(`#${frontendFieldId}`);
+
+      // Special handling for radio buttons
+      if (field === 'recurring_type') {
+          element = $('input[name="recurringType"]');
+      }
+      
+      if (element.length) {
+          const formGroup = element.closest('.form-group');
+          formGroup.addClass('has-error');
+          
+          // Add red border to the input/select
+          if (field === 'recurring_type') {
+              // For radio buttons, add border to the container
+              $('.btn-group-toggle').css('border', '1px solid #dc3545');
+          } else {
+              element.css('border-color', '#dc3545');
+          }
+
+          // Add error messages
+          messages.forEach(message => {
+              if (formGroup.find('.error-message').length === 0) {
+                  // Special handling for date/time fields
+                  if ((field === 'start_time' || field === 'end_time') && 
+                      formGroup.find('.error-message').length === 0) {
+                      formGroup.append(`<div class="error-message text-danger mt-1"><small>${message}</small></div>`);
+                  }
+                  // Normal error message display
+                  else if (field !== 'start_time' && field !== 'end_time') {
+                      formGroup.append(`<div class="error-message text-danger mt-1"><small>${message}</small></div>`);
+                  }
+              }
+          });
+      }
+  });
+}
+
+// Clear validation errors when input changes
+function initializeValidationClearHandlers() {
+  // Clear validation for regular inputs, selects, and textareas
+  $('input:not([type="radio"]), select, textarea').on('input change', function() {
+      const formGroup = $(this).closest('.form-group');
+      formGroup.removeClass('has-error');
+      formGroup.find('.error-message').remove();
+      $(this).css('border-color', '');
+  });
+
+  // Clear validation for radio buttons
+  $('input[type="radio"]').on('change', function() {
+      const formGroup = $(this).closest('.form-group');
+      formGroup.removeClass('has-error');
+      formGroup.find('.error-message').remove();
+      $('.btn-group-toggle').css('border', '');
+  });
+
+  // Clear validation for date/time pickers
+  $('#startDatePicker, #endDatePicker').on('change.datetimepicker', function() {
+      const formGroup = $(this).closest('.form-group');
+      formGroup.removeClass('has-error');
+      formGroup.find('.error-message').remove();
+      $(this).find('input').css('border-color', '');
+  });
+
+  // Clear validation for checkboxes
+  $('input[type="checkbox"]').on('change', function() {
+      const formGroup = $(this).closest('.form-group');
+      formGroup.removeClass('has-error');
+      formGroup.find('.error-message').remove();
+  });
+}
+
+// Modified AJAX error handling
+function handleAjaxError(xhr) {
+  if (xhr.status === 422 && xhr.responseJSON) {
+      // Handle validation errors
+      displayValidationErrors(xhr.responseJSON.errors);
+      
+      // Show general error message if provided
+      if (xhr.responseJSON.message) {
+          customAlert('Validation Error', xhr.responseJSON.message, 'red');
+      }
+  } else {
+      // Handle other errors
+      customAlert('Error', xhr.responseJSON?.message || 'An error occurred while processing your request', 'red');
+  }
+}
