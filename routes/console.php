@@ -19,5 +19,5 @@ Schedule::command('events:send-reminders')
     ->onFailure(function () {
         Log::error('Event reminder failed to send');
     })    
-    ->everyThirtyMinutes()
+    ->everyThirtyMinutes()    
     ->emailOutputOnFailure(Env::get('MAIL_FROM_ADDRESS'));
