@@ -7,6 +7,7 @@ $(function() {
   initializeCounterInputs();
   // Initial binding of event handlers
   rebindEventHandlers();
+  initializeValidationClearHandlers
 
   // =====================
   // Utility Functions
@@ -381,9 +382,7 @@ $(function() {
                   customAlert('Success', 'Event created successfully', 'green');
               }
           },
-          error: function(xhr) {
-              customAlert('Error', xhr.responseJSON?.message || 'Failed to create event', 'red');
-          }
+          error: handleAjaxError
       });
   });
 
@@ -456,9 +455,7 @@ $(function() {
                 rebindEventHandlers();
             }
         },
-        error: function(xhr) {
-            customAlert('Error', xhr.responseJSON?.message || 'Failed to update event', 'red');
-        }
+        error: handleAjaxError
     });
   });
 
