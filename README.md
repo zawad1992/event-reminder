@@ -59,17 +59,32 @@ A robust event management and reminder system built with Laravel 11, featuring C
    mv .env.example .env
    ```
 
-3. **Install Dependencies**
+3. **Configure Mail Settings**
+   
+   Modify the following configuration in your `.env` file:
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=127.0.0.1
+   MAIL_PORT=2525
+   MAIL_USERNAME=null
+   MAIL_PASSWORD=null
+   MAIL_ENCRYPTION=null
+   MAIL_FROM_ADDRESS="hello@example.com"
+   MAIL_FROM_NAME="${APP_NAME}"
+   ```
+   Note: Update these values according to your mail server settings.
+
+4. **Install Dependencies**
    ```bash
    composer install
    ```
 
-4. **Generate Application Key**
+5. **Generate Application Key**
    ```bash
    php artisan key:generate
    ```
 
-5. **Database Setup**
+6. **Database Setup**
    - Create a database named `dbeventmanager`
    - Update `.env` file with your database credentials
    - Run migrations and seeders:
@@ -77,7 +92,7 @@ A robust event management and reminder system built with Laravel 11, featuring C
      php artisan migrate --seed
      ```
 
-6. **Start the Development Server**
+7. **Start the Development Server**
    ```bash
    php artisan serve
    # OR specify a custom port
@@ -121,7 +136,6 @@ Alternatively, you can register a new account using the Register button.
 | Offline/Online Sync | ⚠️ Implemented with known issues |
 | Email Reminders | ✅ Complete |
 | CSV Import | ✅ Complete |
-
 
 ## Support
 
