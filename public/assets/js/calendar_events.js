@@ -262,6 +262,22 @@ $(function() {
         eventResize: function(info) {
           const event = info.event;
           const isAllDay = event.allDay ? 1 : 0;
+
+          // Get the start date
+          const startDate = moment(event.start);
+          
+          // Calculate the end date based on event type
+          let endDate;
+          if (event.end) {
+              endDate = moment(event.end);
+              if (isAllDay) {
+                  // For all-day events, subtract 1 day from end date to match server format
+                  endDate.subtract(1, 'days');
+              }
+          } else {
+              // If no end date, use start date
+              endDate = moment(event.start);
+          }
           
           // Get all required data from the event object
           const formData = {
@@ -269,14 +285,15 @@ $(function() {
             title: event.title,
             description: event.extendedProps.description,
             event_type_id: event.extendedProps.eventTypeId,
-            start_date: moment(event.start).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-            end_date: moment(event.end).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
             color: event.extendedProps.color,
             is_all_day: isAllDay,
             is_reminder: event.extendedProps.isReminder,
             is_recurring: event.extendedProps.isRecurring,
             recurring_type: event.extendedProps.recurringType,
-            recurring_count: event.extendedProps.recurringCount
+            recurring_count: event.extendedProps.recurringCount,
+            external_participants: event.extendedProps.externalParticipants
           };
 
           $.ajax({
@@ -299,6 +316,23 @@ $(function() {
         eventDrop: function(info) {
           const event = info.event;
           const isAllDay = event.allDay ? 1 : 0;
+
+
+          // Get the start date
+          const startDate = moment(event.start);
+          
+          // Calculate the end date based on event type
+          let endDate;
+          if (event.end) {
+              endDate = moment(event.end);
+              if (isAllDay) {
+                  // For all-day events, subtract 1 day from end date to match server format
+                  endDate.subtract(1, 'days');
+              }
+          } else {
+              // If no end date, use start date
+              endDate = moment(event.start);
+          }
           
           // Get all required data from the event object
           const formData = {
@@ -306,14 +340,15 @@ $(function() {
             title: event.title,
             description: event.extendedProps.description,
             event_type_id: event.extendedProps.eventTypeId,
-            start_date: moment(event.start).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-            end_date: moment(event.end).format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+            end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
             color: event.extendedProps.color,
             is_all_day: isAllDay,
             is_reminder: event.extendedProps.isReminder,
             is_recurring: event.extendedProps.isRecurring,
             recurring_type: event.extendedProps.recurringType,
-            recurring_count: event.extendedProps.recurringCount
+            recurring_count: event.extendedProps.recurringCount,
+            external_participants: event.extendedProps.externalParticipants
           };
 
           $.ajax({
@@ -915,27 +950,40 @@ $(function() {
     dataType: "json",
     success: function(response) {
       if (response.events && response.events.length > 0) {
-        eventdata = response.events.map(event => ({
-          id: event.id,
-          title: event.title,
-          start: event.start_date,
-          end: event.end_date,
-          allDay: event.is_all_day,
-          backgroundColor: event.color,
-          borderColor: event.color,
-          extendedProps: {
-            description: event.description,
-            eventTypeId: event.event_type_id,
-            color: event.color,
-            isReminder: event.is_reminder,
-            isAllDay: event.is_all_day,
-            isRecurring: event.is_recurring,
-            recurringType: event.recurring_type,
-            recurringCount: event.recurring_count,
-            externalParticipants: event.external_participants
+        eventdata = response.events.map(event => {
+          // For all-day events, add a day to end_date
+          let endDate = event.is_all_day === 1 ? 
+              moment(event.end_date).add(1, 'days').format('YYYY-MM-DD') : 
+              event.end_date;
+          
+          // For same-day events, ensure end date is after start date
+          if (event.start_date === event.end_date && event.is_all_day === 0) {
+              endDate = moment(event.end_date)
+                  .add(event.end_time === '00:00:00' ? 1 : 0, 'days')
+                  .format('YYYY-MM-DD HH:mm:ss');
+          }
 
-          },
-        }));
+          return {
+            id: event.id,
+            title: event.title,
+            start: event.start_date,
+            end: endDate,
+            allDay: event.is_all_day === 1,
+            backgroundColor: event.color,
+            borderColor: event.color,
+            extendedProps: {
+              description: event.description,
+              eventTypeId: event.event_type_id,
+              color: event.color,
+              isReminder: event.is_reminder,
+              isAllDay: event.is_all_day,
+              isRecurring: event.is_recurring,
+              recurringType: event.recurring_type,
+              recurringCount: event.recurring_count,
+              externalParticipants: event.external_participants
+            }
+          };
+        });
       }
       initializeCalendar();
     },
