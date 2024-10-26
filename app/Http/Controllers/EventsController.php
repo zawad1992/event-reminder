@@ -41,13 +41,27 @@ class EventsController extends Controller
 
     public function get_events()
     {
-        
-        if(Auth::check()){
+        if (Auth::check()) {
             $user_id = Auth::user()->id;
         }
-        $events['events'] = Event::where('user_id', $user_id)->get();
+        
+        $events['events'] = Event::where('user_id', $user_id)
+            ->select([ 'id', 'offline_id', 'reminder_id', 'user_id', 'title', 'description', 'event_type_id',
+                DB::raw('CASE 
+                    WHEN is_all_day = 0 THEN CONCAT(start_date, " ", start_time)
+                    ELSE start_date
+                END as start_date'),
+                DB::raw('CASE 
+                    WHEN is_all_day = 0 THEN CONCAT(end_date, " ", end_time)
+                    ELSE end_date
+                END as end_date'),
+                'color', 'is_all_day', 'is_reminder', 'is_recurring', 'recurring_type', 'recurring_count', 'external_participants', 'is_completed', 'sync_status', 'last_synced_at', 'created_at', 'updated_at', 'deleted_at'
+            ])
+            ->get();
+
         return response()->json($events);
     }
+
 
     public function event_add()
     {
