@@ -2,6 +2,7 @@
 $(function() {
   // Global events array
   let globalEvents = [];
+  let globalEventTypes = [];
 
   initializeRecurringEventHandlers();
   initializeCounterInputs();
@@ -188,10 +189,23 @@ $(function() {
                     <div class="text-muted">
                         <small>
                             <i class="far fa-clock mr-1"></i>
-                            ${event.is_all_day ? 'All Day' : `${formattedStartDate} - ${formattedEndDate}`}
+                            ${event.is_all_day ? 
+                                (moment(event.start_date).isSame(event.end_date, 'day') ?
+                                    `All Day • ${moment(event.start_date).format('MMM D, YYYY')}`
+                                    : 
+                                    `All Day • ${moment(event.start_date).format('MMM D, YYYY')} - ${moment(event.end_date).format('MMM D, YYYY')}`)
+                                : 
+                                `${formattedStartDate} - ${formattedEndDate}`
+                            }
                         </small>
                         ${event.is_reminder ? '<span class="ml-2"><i class="fas fa-bell text-warning"></i></span>' : ''}
                         ${event.is_recurring ? '<span class="ml-2"><i class="fas fa-sync-alt text-info"></i></span>' : ''}
+                        <div class="mt-1">
+                            <small>
+                                <i class="fas fa-tag mr-1"></i>
+                                ${getEventTypeName(event.event_type_id)}
+                            </small>
+                        </div>
                     </div>
                     ${event.external_participants ? `
                         <div class="mt-2">
@@ -656,6 +670,7 @@ $(function() {
       success: function(data) {
         event_loader('hide');
         if(data.event_types.length > 0) {
+          globalEventTypes = data.event_types;
           data.event_types.forEach(element => {
 
             $('.event-type-list').append(
@@ -670,6 +685,8 @@ $(function() {
               </option>`
             );
           });
+
+          createEventCards(globalEvents);
         } else {
           $('#external-events').html(
             '<div class="alert alert-danger" role="alert">No Event Types Found</div>'
@@ -678,5 +695,22 @@ $(function() {
       },
       error: () => event_loader('hide')
   });
+  function getEventTypeName(eventTypeId) {
+    // First try to get from globalEventTypes array
+    const eventType = globalEventTypes.find(type => type.id === eventTypeId);
+    if (eventType) {
+        return eventType.title;
+    }
+    
+    // If not found in array, try to get from select dropdown
+    const optionText = $(`#eventType option[value="${eventTypeId}"]`).text();
+    if (optionText) {
+        return optionText;
+    }
+    
+    // If nothing found, return Unknown Type
+    return 'Unknown Type';
+  }
+
 
 });

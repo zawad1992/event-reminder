@@ -663,6 +663,15 @@ $(function() {
           $('#external-events').prepend(event);
           ini_events(event);
           $('#new-event').val('');
+
+          $('#eventType').append(
+            `<option value="${data.event_type.id}" 
+             data-color="${data.event_type.color}" 
+             style="font-weight: bold; color: ${data.event_type.color}">
+             ${data.event_type.title}
+             </option>`
+          );
+
         }
       },
       error: function(data) {
@@ -761,6 +770,16 @@ $(function() {
             'border-color': editColor,
             'color': getContrastColor(editColor)
           });
+
+          // Update the corresponding option in the dropdown
+          const option = $(`#eventType option[value="${eventId}"]`);
+          option.text(newTitle);
+          option.attr('data-color', editColor);
+          option.css({
+            'color': editColor,
+            'font-weight': 'bold'
+          });
+          
           
           $('#editEventTypeModal').modal('hide');
         }
