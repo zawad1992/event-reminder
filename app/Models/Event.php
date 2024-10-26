@@ -30,4 +30,9 @@ class Event extends Model
         'is_completed'
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }
