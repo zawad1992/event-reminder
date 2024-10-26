@@ -432,22 +432,12 @@ $(function() {
     const endDate = $('#endDatePicker').datetimepicker('date');
     const color = $('#eventType :selected').data('color');
 
-    // Adjust end date based on whether it's an all-day event
-    let adjustedEndDate;
-    if (isAllDay) {
-        // For all-day events, add one day to make the end date inclusive
-        adjustedEndDate = moment(endDate).add(1, 'days');
-    } else {
-        // For timed events, use the exact end time
-        adjustedEndDate = moment(endDate);
-    }
-
     const formData = {
         title: $('#eventTitle').val(),
         description: $('#eventDescription').val(),
         event_type_id: $('#eventType').val(),
         start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-        end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
         color: color,
         is_all_day: isAllDay,
         is_reminder: isReminder,
@@ -475,7 +465,9 @@ $(function() {
             id: response.event.id,
             title: formData.title,
             start: formData.start_date,
-            end: formData.end_date,
+            end: isAllDay ? 
+                moment(formData.end_date).add(1, 'days').format('YYYY-MM-DD') : 
+                formData.end_date,
             allDay: formData.is_all_day,
             backgroundColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
             borderColor: dropInfo ? dropInfo.backgroundColor : $('#eventType option:selected').data('color'),
@@ -521,15 +513,6 @@ $(function() {
     const endDate = $('#endDatePicker').datetimepicker('date');
     const color = $('#eventType :selected').data('color');
 
-    // Adjust end date based on whether it's an all-day event
-    let adjustedEndDate;
-    if (isAllDay) {
-        // For all-day events, add one day to make the end date exclusive
-        adjustedEndDate = moment(endDate).add(1, 'days');
-    } else {
-        // For timed events, use the exact end time
-        adjustedEndDate = moment(endDate);
-    }
 
     // Create formData object with values from form elements
     const formData = {
@@ -538,7 +521,7 @@ $(function() {
         description: $('#eventDescription').val(),
         event_type_id: $('#eventType').val(),
         start_date: startDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
-        end_date: adjustedEndDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
+        end_date: endDate.format(isAllDay ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:mm:ss'),
         color: color,
         is_all_day: isAllDay,
         is_reminder: isReminder,
@@ -571,7 +554,9 @@ $(function() {
                         id: event.id,
                         title: formData.title,
                         start: formData.start_date,
-                        end: formData.end_date,
+                        end: isAllDay ? 
+                            moment(formData.end_date).add(1, 'days').format('YYYY-MM-DD') : 
+                            formData.end_date,
                         allDay: isAllDay === 1,
                         backgroundColor: color,
                         borderColor: color,
